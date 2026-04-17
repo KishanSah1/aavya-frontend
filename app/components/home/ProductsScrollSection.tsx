@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRef } from 'react'
 import { useProducts } from '@/lib/queries/useProducts'
+import Button from '@/app/components/ui/Button'
 import ProductScrollCard from './ProductScrollCard'
 
 function SkeletonCard() {
@@ -63,12 +63,15 @@ export default function ProductsScrollSection() {
               <ChevronRight className="w-4 h-4" />
             </button>
 
-            <Link
+            <Button
               href="/products"
-              className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-secondary hover:underline"
+              variant="ghost"
+              size="sm"
+              className="hidden sm:inline-flex"
+              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
             >
-              View All <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+              View All
+            </Button>
           </div>
         </div>
 
@@ -89,12 +92,13 @@ export default function ProductsScrollSection() {
 
         {/* Mobile view-all */}
         <div className="mt-6 text-center sm:hidden">
-          <Link
+          <Button
             href="/products"
-            className="inline-flex items-center gap-2 bg-gradient-green text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition-opacity"
+            size="md"
+            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
           >
-            View All Products <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+            View All Products
+          </Button>
         </div>
       </div>
     </section>

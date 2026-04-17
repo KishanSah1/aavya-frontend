@@ -10,7 +10,7 @@ export default function TestimonialCard({ testimonial }: TestimonialCardProps) {
     testimonial
 
   return (
-    <article className="bg-surface rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4 border border-surface hover:border-primary/20">
+    <article className="h-full bg-surface rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4 border border-surface hover:border-primary/20">
       {/* Stars */}
       <div className="flex gap-1" aria-label={`${rating} out of 5 stars`}>
         {Array.from({ length: 5 }).map((_, i) => (

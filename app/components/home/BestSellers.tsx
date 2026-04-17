@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import { Leaf, ArrowRight } from 'lucide-react'
 import { useProducts } from '@/lib/queries/useProducts'
+import Button from '@/app/components/ui/Button'
 import ProductCard from './ProductCard'
 
 function ProductSkeleton() {
@@ -57,7 +57,7 @@ export default function BestSellers() {
               ? Array.from({ length: 2 }).map((_, i) => (
                   <ProductSkeleton key={i} />
                 ))
-              : products?.slice(0, 2).map((product) => (
+              : products?.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
           </div>
@@ -65,13 +65,13 @@ export default function BestSellers() {
 
         {/* CTA */}
         <div className="text-center">
-          <Link
+          <Button
             href="/products"
-            className="inline-flex items-center gap-2 bg-gradient-green text-background font-semibold px-8 py-3 rounded-full hover:opacity-90 transition-all hover:scale-105 shadow-md group"
+            size="lg"
+            rightIcon={<ArrowRight className="w-4 h-4" />}
           >
             View All Products
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          </Button>
         </div>
       </div>
     </section>

@@ -9,28 +9,28 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   {
-    icon: ShieldCheck,
-    title: '100% Pure & Desi',
-    description:
-      'Every jar is lab-tested and certified. No adulterants, no shortcuts — just pure A2 ghee.',
-  },
-  {
-    icon: FlaskConical,
-    title: 'Traditional Bilona Method',
-    description:
-      'Curd is hand-churned to extract butter, which is then slow-cooked to golden perfection.',
-  },
-  {
-    icon: Heart,
-    title: 'Rich in Nutrients',
-    description:
-      'Packed with essential fatty acids, fat-soluble vitamins A, D, E & K, and antioxidants.',
-  },
-  {
     icon: Sprout,
     title: 'Farm Fresh',
     description:
-      'Milk from our own free-grazing desi cows. Ethically raised, lovingly cared for.',
+      'Sourced directly from trusted farms where quality and care begin at the very source.',
+  },
+  {
+    icon: FlaskConical,
+    title: 'Traditional Method',
+    description:
+      'Crafted using the time-honoured Bilona process for authentic taste and nutrition.',
+  },
+  {
+    icon: Heart,
+    title: 'No Preservatives',
+    description:
+      'Made without any additives or chemicals, just pure, natural goodness.',
+  },
+  {
+    icon: ShieldCheck,
+    title: '100% Pure & Desi',
+    description:
+      'Rich, aromatic, and unadulterated ghee you can trust for your everyday meals.',
   },
 ]
 

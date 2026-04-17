@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Construction, Home } from 'lucide-react'
+import Button from './components/ui/Button'
 import GoBackButton from './components/GoBackButton'
 
 export default function NotFound() {
@@ -38,13 +39,9 @@ export default function NotFound() {
 
       {/* CTAs */}
       <div className="flex flex-wrap gap-3 justify-center">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 bg-gradient-green text-white font-semibold px-6 py-3 rounded-full hover:opacity-90 transition-opacity shadow-md"
-        >
-          <Home className="w-4 h-4" />
+        <Button href="/" leftIcon={<Home className="w-4 h-4" />}>
           Back to Home
-        </Link>
+        </Button>
         <GoBackButton />
       </div>
     </div>
