@@ -1,6 +1,6 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import Button from '@/app/components/ui/Button'
 
 export default function StorySection() {
   return (
@@ -30,29 +30,27 @@ export default function StorySection() {
           </div>
 
           <h2 className="text-4xl md:text-5xl font-bold text-text-primary mb-6 leading-tight">
-            From Our Farm
+            Ever Wonder What Real
             <br />
-            <span className="text-gradient-green">to Your Home</span>
+            <span className="text-gradient-green">Ghee Feels Like?</span>
           </h2>
 
           <p className="text-text-secondary leading-relaxed mb-4 text-base md:text-lg">
-            Our ghee is made from the milk of free-roaming indigenous Desi cows
-            that graze on natural pastures. We follow the ancient Bilona method
-            — churning curd by hand to separate the butter, then slow-cooking it
-            into golden, aromatic ghee.
+            Not factory-made. Not rushed. Born in open farms, crafted with
+            patience, just the way our grandparents trusted. Because here,
+            nothing is hurried.
           </p>
-          <p className="text-text-secondary/80 leading-relaxed mb-8 text-sm md:text-base">
-            No factory shortcuts. No artificial inputs. Just generations of
-            wisdom and a deep love for purity.
+          <p className="text-text-secondary/70 leading-relaxed mb-8 text-sm md:text-base italic">
+            No shortcuts. Just sincerity in every step.
           </p>
 
-          <Link
-            href="/about"
-            className="inline-flex items-center gap-2 bg-gradient-green text-background font-semibold px-8 py-3 rounded-full hover:opacity-90 transition-all shadow-md group"
+          <Button
+            href="/journey"
+            size="lg"
+            rightIcon={<ArrowRight className="w-4 h-4" />}
           >
-            Know More
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+            See How It&apos;s Made
+          </Button>
         </div>
       </div>
     </section>

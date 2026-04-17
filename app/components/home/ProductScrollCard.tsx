@@ -1,7 +1,7 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { ShoppingCart } from 'lucide-react'
 import type { Product } from '@/lib/types'
+import Button from '@/app/components/ui/Button'
 
 interface ProductScrollCardProps {
   product: Product
@@ -32,9 +32,7 @@ export default function ProductScrollCard({ product }: ProductScrollCardProps) {
       {/* Content */}
       <div className="p-4 flex flex-col gap-2 flex-1">
         <div>
-          <h3 className="font-bold text-text-primary text-sm leading-snug">
-            {name}
-          </h3>
+          <h3 className="font-bold text-text-primary text-sm leading-snug">{name}</h3>
           <p className="text-text-secondary text-xs mt-0.5">{weight}</p>
         </div>
 
@@ -42,21 +40,24 @@ export default function ProductScrollCard({ product }: ProductScrollCardProps) {
           ₹{price.toLocaleString('en-IN')}
         </p>
 
-        {/* Buttons */}
         <div className="flex gap-2 mt-1">
-          <Link
+          <Button
             href={href}
-            className="flex-1 text-center text-xs font-semibold border border-surface text-text-secondary hover:border-secondary hover:text-secondary py-2 rounded-full transition-colors"
+            variant="subtle"
+            size="sm"
+            className="flex-1 justify-center text-xs"
           >
             Details
-          </Link>
-          <button
-            className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold bg-gradient-green text-white py-2 rounded-full hover:opacity-90 transition-opacity"
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            className="flex-1 justify-center text-xs"
+            leftIcon={<ShoppingCart className="w-3 h-3" />}
             aria-label={`Add ${name} ${weight} to cart`}
           >
-            <ShoppingCart className="w-3 h-3" />
             Add
-          </button>
+          </Button>
         </div>
       </div>
     </article>

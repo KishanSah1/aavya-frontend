@@ -33,14 +33,14 @@ export default function TestimonialsSection() {
 
   return (
     <section className="bg-background py-20 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Heading */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-3">
             <Quote className="w-8 h-8 text-primary/40" />
           </div>
           <h2 className="text-4xl font-bold text-text-primary">
-            Customer Testimonials
+            Straight from Our Customers
           </h2>
           <p className="text-text-secondary mt-3 text-sm">
             Real experiences from families who made the switch to pure ghee.
@@ -48,15 +48,29 @@ export default function TestimonialsSection() {
           <div className="w-16 h-1 bg-primary rounded-full mx-auto mt-4" />
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {isLoading
-            ? Array.from({ length: 2 }).map((_, i) => (
-                <TestimonialSkeleton key={i} />
-              ))
-            : testimonials?.map((t) => (
-                <TestimonialCard key={t.id} testimonial={t} />
-              ))}
+        {/* Slider */}
+        <div className="relative">
+          {/* Left fade */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+          {/* Right fade */}
+          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+
+          <div
+            className="flex gap-6 overflow-x-auto pb-2"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {isLoading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="shrink-0 w-72 h-full">
+                    <TestimonialSkeleton />
+                  </div>
+                ))
+              : testimonials?.map((t) => (
+                  <div key={t.id} className="shrink-0 w-72 h-full">
+                    <TestimonialCard testimonial={t} />
+                  </div>
+                ))}
+          </div>
         </div>
       </div>
     </section>

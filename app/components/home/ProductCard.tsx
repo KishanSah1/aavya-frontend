@@ -1,7 +1,7 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import type { Product } from '@/lib/types'
+import Button from '@/app/components/ui/Button'
 
 interface ProductCardProps {
   product: Product
@@ -42,13 +42,14 @@ export default function ProductCard({ product }: ProductCardProps) {
           ₹{price.toLocaleString('en-IN')}
         </p>
 
-        <Link
+        <Button
           href={href}
-          className="mt-2 inline-flex items-center justify-center gap-2 bg-gradient-green text-background hover:opacity-90 font-semibold text-sm px-5 py-2.5 rounded-full transition-all shadow-sm group/btn"
+          size="sm"
+          className="mt-2"
+          rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
         >
           Know More
-          <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
-        </Link>
+        </Button>
       </div>
     </article>
   )

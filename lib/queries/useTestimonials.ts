@@ -5,20 +5,38 @@ const MOCK_TESTIMONIALS: Testimonial[] = [
   {
     id: 't1',
     quote:
-      'Aavya ghee has completely changed how my family cooks. The aroma is incredible and you can actually taste the difference from store-bought brands. Pure, rich, and absolutely worth every rupee.',
-    authorName: 'Priya Sharma',
-    authorLocation: 'Mumbai, Maharashtra',
+      'I switched to this ghee recently, and honestly, the aroma itself tells you it\'s pure. Feels like the ghee we used to have at home.',
+    authorName: 'Priya Sarkar',
+    authorLocation: 'Kolkata, West Bengal',
     rating: 5,
     avatarInitials: 'PS',
   },
   {
     id: 't2',
     quote:
-      'Been using this for 6 months now. The Bilona method really makes a difference — the ghee is light, fragrant, and our kids love it. Highly recommend to anyone who values quality.',
-    authorName: 'Rajesh Nair',
-    authorLocation: 'Bangalore, Karnataka',
+      'You can actually taste the difference. It\'s lighter, richer, and doesn\'t feel processed at all.',
+    authorName: 'Rahul Kumar',
+    authorLocation: 'Delhi, NCR',
     rating: 5,
-    avatarInitials: 'RN',
+    avatarInitials: 'RK',
+  },
+  {
+    id: 't3',
+    quote:
+      'I was looking for something without preservatives, and this checked all the boxes. Clean, simple, and trustworthy.',
+    authorName: 'Neha Chettri',
+    authorLocation: 'Pune, Maharashtra',
+    rating: 5,
+    avatarInitials: 'NC',
+  },
+  {
+    id: 't4',
+    quote:
+      'The Bilona method really shows. The texture and flavour are completely different from regular store-bought ghee.',
+    authorName: 'Amit Raghuvanshi',
+    authorLocation: 'Jaipur, Rajasthan',
+    rating: 5,
+    avatarInitials: 'AR',
   },
 ]
 
