@@ -3,33 +3,33 @@ import { Leaf } from 'lucide-react'
 
 const STEPS = [
   {
-    title: 'Milking with care',
+    title: 'Our Farmers',
     description:
-      'A2 Desi cows are milked by hand, honoring ancient Ayurvedic traditions for purity and authenticity.',
+      'Everything begins at the source. We work closely with farmers who care for their cows with patience, respect, and consistency, not shortcuts. Their everyday dedication ensures the milk we begin with is as pure and honest as it should be.',
     image: '/aavya/journey-steps/step1.webp',
   },
   {
-    title: 'Heating milk and preparing curd',
+    title: 'Slow Churned',
     description:
-      'Heat A2 milk in a clay pot, add curd culture, and let it ferment into rich curd.',
+      'The milk is first set into curd, then gently hand-churned using the traditional Bilona method. No machines speeding things up, just time, effort, and a process trusted for generations to bring out the true richness of ghee.',
     image: '/aavya/journey-steps/step2.webp',
   },
   {
-    title: 'Traditionally wood churned',
+    title: 'Nothing Added',
     description:
-      'The curd is churned using a wooden bilona, extracting rich and wholesome butter.',
+      'We keep the process clean and simple. No preservatives, no additives, nothing unnecessary. We don\'t try to change what\'s already good, because real ghee doesn\'t need improving; it just needs to be respected.',
     image: '/aavya/journey-steps/step3.webp',
   },
   {
-    title: 'Slow cooking the butter',
+    title: 'Truly Pure',
     description:
-      'This process evaporates water content and converts the butter into golden aromatic ghee, retaining all its nutritional properties.',
+      'What\'s created is ghee in its most natural form. Rich in aroma, balanced in texture, and made with complete honesty, something you can feel confident adding to your everyday meals.',
     image: '/aavya/journey-steps/step4.webp',
   },
   {
-    title: 'Filtering and packaging',
+    title: 'Sealed with Care',
     description:
-      'Once cooled, the pure Bilona A2 Ghee is carefully packaged to preserve its freshness and rich aroma.',
+      'Once ready, the ghee is carefully packed to preserve its freshness, aroma, and purity. So when it reaches your kitchen, it carries the same quality and care it started with.',
     image: '/aavya/journey-steps/step5.webp',
   },
 ] as const
@@ -106,10 +106,10 @@ export default function JourneyPage() {
             How we make it
           </p>
           <h1 className="text-3xl sm:text-4xl md:text-[2.35rem] font-extrabold text-secondary leading-[1.12] tracking-tight max-w-3xl">
-            The traditional journey of our ghee
+            Aavya&apos;s Process of Perfection
           </h1>
           <p className="mt-5 text-text-secondary text-base md:text-lg leading-relaxed max-w-2xl mx-auto md:mx-0">
-            From hand-milked A2 cows to sealed jars — every step follows the Bilona path, slowly and without shortcuts.
+            From the farm to your kitchen — five steps carried out with patience, honesty, and nothing left out.
           </p>
         </div>
       </section>

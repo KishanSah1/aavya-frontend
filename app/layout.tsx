@@ -1,14 +1,16 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import Providers from './providers'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import OfferBar from './components/layout/OfferBar'
 import './globals.css'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const primaryFont = Plus_Jakarta_Sans({
+  variable: '--font-primary',
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -23,12 +25,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full`}>
+    <html lang="en" className={`${primaryFont.variable} h-full`}>
       <body className="min-h-full flex flex-col antialiased" style={{ backgroundColor: 'var(--background)', color: 'var(--text-primary)' }}>
         <Providers>
           <OfferBar />
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 animate-page-fade">{children}</main>
           <Footer />
         </Providers>
       </body>
