@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown, ArrowRight } from 'lucide-react'
 import Button from '@/app/components/ui/Button'
+import ScrollReveal from '@/app/components/ScrollReveal'
 
 interface FAQItem {
   question: string
@@ -47,72 +48,70 @@ export default function FAQSection() {
 
   return (
     <section className="relative py-24 px-4">
-
       <div className="relative z-10 max-w-2xl mx-auto">
-        {/* Heading */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-text-primary mb-3">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-text-secondary text-sm">
-            Everything you need to know about our ghee
-          </p>
-        </div>
+        <ScrollReveal animation="up">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-text-primary mb-3">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-text-secondary text-sm">
+              Everything you need to know about our ghee
+            </p>
+          </div>
+        </ScrollReveal>
 
-        {/* Accordion */}
         <div className="flex flex-col gap-3">
           {FAQS.map((faq, i) => {
             const isOpen = openIndex === i
             return (
-              <div
-                key={i}
-                className="bg-background/90 backdrop-blur-sm rounded-2xl border border-surface overflow-hidden shadow-sm transition-shadow hover:shadow-md"
-              >
-                <button
-                  onClick={() => setOpenIndex(isOpen ? null : i)}
-                  className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left"
-                  aria-expanded={isOpen}
-                >
-                  <span className="font-semibold text-text-primary text-sm md:text-base">
-                    {faq.question}
-                  </span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-secondary shrink-0 transition-transform duration-300 ${
-                      isOpen ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
+              <ScrollReveal key={i} animation="up" delay={i * 60}>
+                <div className="bg-background/90 backdrop-blur-sm rounded-2xl border border-surface overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:border-primary/20">
+                  <button
+                    onClick={() => setOpenIndex(isOpen ? null : i)}
+                    className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left"
+                    aria-expanded={isOpen}
+                  >
+                    <span className="font-semibold text-text-primary text-sm md:text-base">
+                      {faq.question}
+                    </span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-secondary shrink-0 transition-transform duration-300 ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
 
-                {/* Answer — height transition via grid trick */}
-                <div
-                  className={`grid transition-all duration-300 ease-in-out ${
-                    isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                  }`}
-                >
-                  <div className="overflow-hidden">
-                    <p className="px-6 pb-5 text-text-secondary text-sm leading-relaxed">
-                      {faq.answer}
-                    </p>
+                  <div
+                    className={`grid transition-all duration-300 ease-in-out ${
+                      isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <p className="px-6 pb-5 text-text-secondary text-sm leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </ScrollReveal>
             )
           })}
         </div>
 
-        {/* CTA */}
-        <div className="text-center mt-12">
-          <p className="text-text-primary font-semibold text-lg mb-4">
-            Still have questions?
-          </p>
-          <Button
-            href="/about"
-            size="lg"
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-          >
-            Contact Us
-          </Button>
-        </div>
+        <ScrollReveal animation="up" delay={150}>
+          <div className="text-center mt-12">
+            <p className="text-text-primary font-semibold text-lg mb-4">
+              Still have questions?
+            </p>
+            <Button
+              href="/about"
+              size="lg"
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              Contact Us
+            </Button>
+          </div>
+        </ScrollReveal>
       </div>
     </section>
   )

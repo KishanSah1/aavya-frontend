@@ -1,4 +1,5 @@
 import { Sprout, FlaskConical, ShieldCheck } from 'lucide-react'
+import ScrollReveal from '@/app/components/ScrollReveal'
 
 const TRUST_ITEMS = [
   {
@@ -23,32 +24,27 @@ const TRUST_ITEMS = [
 
 export default function TrustBar() {
   return (
-    <section className="bg-background border-y border-surface py-10 px-4">
+    <section className="bg-background border-y border-surface py-12 px-4">
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3">
         {TRUST_ITEMS.map(({ icon: Icon, title, description }, index) => (
-          <div
-            key={title}
-            className={`flex flex-col items-center text-center px-8 py-4 group ${
-              index < TRUST_ITEMS.length - 1
-                ? 'border-b md:border-b-0 md:border-r border-surface'
-                : ''
-            }`}
-          >
-            {/* Icon */}
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-              <Icon className="w-7 h-7 text-primary" strokeWidth={1.5} />
+          <ScrollReveal key={title} animation="up" delay={index * 130}>
+            <div
+              className={`flex flex-col items-center text-center px-8 py-4 group ${
+                index < TRUST_ITEMS.length - 1
+                  ? 'border-b md:border-b-0 md:border-r border-surface'
+                  : ''
+              }`}
+            >
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300 shadow-sm group-hover:shadow-md">
+                <Icon
+                  className="w-8 h-8 text-primary group-hover:animate-float"
+                  strokeWidth={1.5}
+                />
+              </div>
+              <h3 className="font-bold text-text-primary text-base mb-2">{title}</h3>
+              <p className="text-text-secondary text-sm leading-relaxed">{description}</p>
             </div>
-
-            {/* Title */}
-            <h3 className="font-bold text-text-primary text-base mb-2">
-              {title}
-            </h3>
-
-            {/* Description */}
-            <p className="text-text-secondary text-sm leading-relaxed">
-              {description}
-            </p>
-          </div>
+          </ScrollReveal>
         ))}
       </div>
     </section>
