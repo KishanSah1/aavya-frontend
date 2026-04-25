@@ -102,7 +102,7 @@ export default function CartPage() {
                   ₹{totalPrice.toLocaleString('en-IN')}
                 </p>
               </div>
-              <Button type="button" size="lg">
+              <Button href="/checkout" size="lg">
                 Proceed to checkout
               </Button>
             </div>

@@ -1,11 +1,24 @@
 import { useQuery } from '@tanstack/react-query'
-import { getProductsForListing } from '@/lib/data/products'
 import type { Product } from '@/lib/types'
 
-// Simulates async API call — swap for real endpoint later
+const API = process.env.NEXT_PUBLIC_API_BASE_URL
+
 async function fetchProducts(): Promise<Product[]> {
-  await new Promise((r) => setTimeout(r, 400)) // simulate network latency
-  return getProductsForListing()
+  const res = await fetch(`${API}/api/v1/products`)
+  if (!res.ok) throw new Error('Failed to fetch products')
+  const { data } = await res.json()
+  return data.map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    weight: p.weight,
+    price: p.price / 100,
+    mrp: p.mrp / 100,
+    imageSrc: p.imageSrc,
+    href: `/products/${p.slug}`,
+    badge: p.badge,
+    description: p.description,
+    highlights: p.highlights,
+  }))
 }
 
 export function useProducts() {

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowRight, Clock, Flame, Leaf, Sprout, Users, Sun } from 'lucide-react'
 import ScrollReveal from '@/app/components/ScrollReveal'
 import PostModal from '@/app/components/seller/PostModal'
+import { usePosts } from '@/lib/queries/usePosts'
 import type { Post, PostCategory } from './types'
 
 // ─── Category meta ─────────────────────────────────────────────────────────────
@@ -21,9 +22,9 @@ const CATEGORY_META: Record<PostCategory, { pill: string; icon: React.ElementTyp
   Team:     { pill: 'bg-amber-50 text-amber-800 border-amber-200',          icon: Users  },
 }
 
-// ─── Posts data ────────────────────────────────────────────────────────────────
+// ─── Posts data (hardcoded fallback removed — served from API) ─────────────────
 
-const POSTS: Post[] = [
+const POSTS_FALLBACK: Post[] = [
   {
     id: 1,
     title: 'Why We Never Rush the Bilona Process',
@@ -341,10 +342,11 @@ function ConversionBanner() {
 export default function SellerPage() {
   const [activeCategory, setActiveCategory] = useState<FilterCategory>('All')
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+  const { data: posts = POSTS_FALLBACK, isLoading } = usePosts()
 
   const filtered = useMemo(
-    () => (activeCategory === 'All' ? POSTS : POSTS.filter((p) => p.category === activeCategory)),
-    [activeCategory]
+    () => (activeCategory === 'All' ? posts : posts.filter((p) => p.category === activeCategory)),
+    [activeCategory, posts]
   )
 
   const featured = filtered.find((p) => p.featured) ?? filtered[0]
@@ -378,7 +380,7 @@ export default function SellerPage() {
               Weekly peeks into the farm, the kitchen, and the people behind every jar \u2014 told honestly, the same way we make our ghee.
             </p>
             <div className="flex flex-wrap justify-center md:justify-start gap-6">
-              {[{ label: 'Stories', value: `${POSTS.length}+` }, { label: 'Posted weekly', value: 'Every Week' }, { label: 'From the source', value: '100% Real' }].map(({ label, value }) => (
+              {[{ label: 'Stories', value: `${posts.length}+` }, { label: 'Posted weekly', value: 'Every Week' }, { label: 'From the source', value: '100% Real' }].map(({ label, value }) => (
                 <div key={label} className="text-center md:text-left">
                   <p className="text-text-primary font-bold text-lg">{value}</p>
                   <p className="text-text-secondary text-xs">{label}</p>
@@ -414,7 +416,9 @@ export default function SellerPage() {
           </div>
         </ScrollReveal>
 
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-24 text-text-secondary">Loading stories…</div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-24 text-text-secondary">No stories in this category yet. Check back soon.</div>
         ) : (
           <>
