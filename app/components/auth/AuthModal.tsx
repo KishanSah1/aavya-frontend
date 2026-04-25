@@ -1,0 +1,355 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
+import { X } from 'lucide-react'
+import { useAuthStore } from '@/lib/store/authStore'
+import { useCartStore } from '@/lib/store/cartStore'
+import Button from '@/app/components/ui/Button'
+
+const API = process.env.NEXT_PUBLIC_API_BASE_URL
+
+const VALUE_CARDS = [
+  { emoji: '🧈', title: 'Pure', sub: 'No shortcuts, no compromise' },
+  { emoji: '🐄', title: 'Traditional', sub: 'Bilona method, every time' },
+  { emoji: '✨', title: 'Trusted', sub: '5,000+ families can\'t be wrong' },
+]
+
+type Step = 'phone' | 'otp' | 'name'
+
+export default function AuthModal() {
+  const { isModalOpen, closeModal, setAuth } = useAuthStore()
+  const syncOnLogin = useCartStore((s) => s.syncOnLogin)
+
+  const [step, setStep] = useState<Step>('phone')
+  const [phone, setPhone] = useState('')
+  const [otp, setOtp] = useState(['', '', '', '', '', ''])
+  const [name, setName] = useState('')
+  const [pendingAuth, setPendingAuth] = useState<{ user: Parameters<typeof setAuth>[0], accessToken: string, refreshToken: string } | null>(null)
+  const [notify, setNotify] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [resendTimer, setResendTimer] = useState(0)
+
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  // close on Escape
+  useEffect(() => {
+    if (!isModalOpen) return
+    const handler = (e: KeyboardEvent) => e.key === 'Escape' && handleClose()
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [isModalOpen])
+
+  // countdown timer for resend
+  useEffect(() => {
+    if (resendTimer <= 0) return
+    const t = setTimeout(() => setResendTimer((n) => n - 1), 1000)
+    return () => clearTimeout(t)
+  }, [resendTimer])
+
+  function handleClose() {
+    closeModal()
+    setStep('phone')
+    setPhone('')
+    setOtp(['', '', '', '', '', ''])
+    setName('')
+    setPendingAuth(null)
+    setError('')
+  }
+
+  async function handlePhoneSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const cleaned = phone.replace(/\D/g, '')
+    if (cleaned.length !== 10) { setError('Enter a valid 10-digit number'); return }
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch(`${API}/api/v1/auth/request-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: `+91${cleaned}` }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setError(json.error?.message ?? 'Failed to send OTP'); return }
+      setStep('otp')
+      setResendTimer(30)
+      setTimeout(() => otpRefs.current[0]?.focus(), 100)
+    } catch {
+      setError('Network error. Try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleOtpSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const code = otp.join('')
+    if (code.length !== 6) { setError('Enter the full 6-digit OTP'); return }
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch(`${API}/api/v1/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: `+91${phone.replace(/\D/g, '')}`, code }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setError(json.error?.message ?? 'Invalid OTP'); return }
+      if (!json.data.user.name) {
+        setPendingAuth({ user: json.data.user, accessToken: json.data.accessToken, refreshToken: json.data.refreshToken })
+        setStep('name')
+      } else {
+        setAuth(json.data.user, json.data.accessToken, json.data.refreshToken)
+        await syncOnLogin()
+      }
+    } catch {
+      setError('Network error. Try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleOtpKey(i: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Backspace' && !otp[i] && i > 0) {
+      otpRefs.current[i - 1]?.focus()
+    }
+  }
+
+  function handleOtpChange(i: number, val: string) {
+    const digit = val.replace(/\D/g, '').slice(-1)
+    const next = [...otp]
+    next[i] = digit
+    setOtp(next)
+    if (digit && i < 5) otpRefs.current[i + 1]?.focus()
+  }
+
+  async function handleNameSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!name.trim() || !pendingAuth) return
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch(`${API}/api/v1/auth/me`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${pendingAuth.accessToken}` },
+        body: JSON.stringify({ name: name.trim() }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setError(json.error?.message ?? 'Failed to save name'); return }
+      setAuth({ ...pendingAuth.user, name: name.trim() }, pendingAuth.accessToken, pendingAuth.refreshToken)
+      await syncOnLogin()
+    } catch {
+      setError('Network error. Try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleResend() {
+    if (resendTimer > 0) return
+    const cleaned = phone.replace(/\D/g, '')
+    await fetch(`${API}/api/v1/auth/request-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: `+91${cleaned}` }),
+    })
+    setResendTimer(30)
+    setOtp(['', '', '', '', '', ''])
+    setTimeout(() => otpRefs.current[0]?.focus(), 50)
+  }
+
+  if (!isModalOpen) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+    >
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={handleClose}
+      />
+
+      {/* Modal */}
+      <div className="relative z-10 w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[420px]">
+
+        {/* ── Left panel ── */}
+        <div className="relative flex flex-col justify-between bg-[#F5E9C8] px-8 py-10 md:w-[52%]">
+          {/* Logo */}
+          <div>
+            <Image
+              src="/aavya/logo.jpeg"
+              alt="Aavya Foods"
+              width={140}
+              height={60}
+              className="object-contain h-12 w-auto mb-8"
+            />
+            <h2 className="text-2xl font-extrabold text-[#3B2A1A] leading-snug mb-8">
+              Login now to avail<br />best offers!
+            </h2>
+          </div>
+
+          {/* Value cards */}
+          <div className="grid grid-cols-3 gap-3">
+            {VALUE_CARDS.map((c) => (
+              <div
+                key={c.title}
+                className="flex flex-col items-center text-center bg-[#EDD99A]/60 rounded-2xl px-3 py-5 gap-2"
+              >
+                <span className="text-3xl">{c.emoji}</span>
+                <p className="font-bold text-[#3B2A1A] text-sm leading-tight">{c.title}</p>
+                <p className="text-[#6B4C2A] text-xs leading-snug">{c.sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Right panel ── */}
+        <div className="relative flex flex-col justify-center bg-white px-8 py-10 md:w-[48%]">
+          {/* Close */}
+          <button
+            onClick={handleClose}
+            className="absolute top-4 right-4 p-1.5 rounded-full text-text-secondary hover:bg-surface transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {step === 'name' ? (
+            <form onSubmit={handleNameSubmit} className="flex flex-col gap-5">
+              <div>
+                <h3 className="text-xl font-bold text-text-primary mb-1">What's your name?</h3>
+                <p className="text-sm text-text-secondary">Help us personalise your experience</p>
+              </div>
+
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your full name"
+                maxLength={100}
+                autoFocus
+                className="border border-surface rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
+              />
+
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+
+              <Button type="submit" disabled={loading || !name.trim()} fullWidth size="lg" variant="outline">
+                {loading ? 'Saving…' : 'Continue'}
+              </Button>
+            </form>
+          ) : step === 'phone' ? (
+            <form onSubmit={handlePhoneSubmit} className="flex flex-col gap-5">
+              <div>
+                <h3 className="text-xl font-bold text-text-primary mb-1">Enter your number</h3>
+                <p className="text-sm text-text-secondary">We'll send a one-time OTP to verify</p>
+              </div>
+
+              {/* Phone input */}
+              <div className="flex items-center border border-surface rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-secondary/30 transition-all bg-white">
+                <div className="flex items-center gap-2 px-4 py-3 border-r border-surface text-sm font-medium text-text-primary shrink-0 bg-[#FAFAF8]">
+                  <span>🇮🇳</span>
+                  <span>+91</span>
+                </div>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="Enter Mobile Number"
+                  className="flex-1 px-4 py-3 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none bg-transparent"
+                  autoFocus
+                />
+              </div>
+
+              {/* Notify checkbox */}
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <div
+                  onClick={() => setNotify((n) => !n)}
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                    notify ? 'bg-secondary border-secondary' : 'border-surface bg-white'
+                  }`}
+                >
+                  {notify && (
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
+                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-sm text-text-secondary">Notify me with offers & updates</span>
+              </label>
+
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+
+              <Button type="submit" disabled={loading} fullWidth size="lg" variant="outline">
+                {loading ? 'Sending…' : 'Submit'}
+              </Button>
+
+              <p className="text-center text-xs text-text-secondary leading-relaxed">
+                I accept that I have read & understood your{' '}
+                <span className="underline cursor-pointer">Privacy Policy</span>{' '}
+                and{' '}
+                <span className="underline cursor-pointer">T&Cs.</span>
+              </p>
+            </form>
+          ) : (
+            <form onSubmit={handleOtpSubmit} className="flex flex-col gap-5">
+              <div>
+                <h3 className="text-xl font-bold text-text-primary mb-1">Verify OTP</h3>
+                <p className="text-sm text-text-secondary">
+                  Sent to +91 {phone}
+                  <button
+                    type="button"
+                    onClick={() => { setStep('phone'); setError('') }}
+                    className="ml-2 text-secondary underline text-xs"
+                  >
+                    Change
+                  </button>
+                </p>
+              </div>
+
+              {/* OTP boxes */}
+              <div className="flex gap-2.5 justify-between">
+                {otp.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={(el) => { otpRefs.current[i] = el }}
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                    onKeyDown={(e) => handleOtpKey(i, e)}
+                    className="w-11 h-12 text-center text-lg font-bold border-2 rounded-xl outline-none transition-all focus:border-secondary focus:ring-2 focus:ring-secondary/20 border-surface text-text-primary"
+                  />
+                ))}
+              </div>
+
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+
+              <Button type="submit" disabled={loading} fullWidth size="lg" variant="outline">
+                {loading ? 'Verifying…' : 'Verify & Login'}
+              </Button>
+
+              <p className="text-center text-sm text-text-secondary">
+                Didn't receive it?{' '}
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resendTimer > 0}
+                  className="text-secondary font-medium disabled:text-text-secondary/50"
+                >
+                  {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+                </button>
+              </p>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

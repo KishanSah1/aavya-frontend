@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ShoppingCart, Search, User } from 'lucide-react'
+import { Menu, X, ShoppingCart, Search, User, LogOut } from 'lucide-react'
 import { useCartStore } from '@/lib/store/cartStore'
+import { useAuthStore } from '@/lib/store/authStore'
 import type { NavLink } from '@/lib/types'
 
 interface NavbarClientProps {
@@ -16,8 +17,13 @@ export default function NavbarClient({ links }: NavbarClientProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const totalItems = useCartStore((s) => s.totalItems())
+
+  useEffect(() => { setMounted(true) }, [])
   const pathname = usePathname()
+  const { user, openModal, logout } = useAuthStore()
+  const resetCart = useCartStore((s) => s.resetCart)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -87,20 +93,45 @@ export default function NavbarClient({ links }: NavbarClientProps) {
             <Search className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
           </button>
 
-          <Link
-            href="/profile"
-            className="group p-2.5 rounded-full text-text-secondary hover:text-secondary hover:bg-secondary/10 hover:ring-2 hover:ring-secondary/30 active:scale-90 transition-all duration-200"
-            aria-label="Profile"
-          >
-            <User className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
-          </Link>
+          {user ? (
+            <div className="relative group">
+              <button
+                className="flex items-center gap-2 px-3 py-2 rounded-full text-text-secondary hover:text-secondary hover:bg-secondary/10 transition-all duration-200"
+                aria-label="Account"
+              >
+                <div className="w-7 h-7 rounded-full bg-secondary/20 flex items-center justify-center text-xs font-bold text-secondary">
+                  {(user.name ?? user.phone ?? 'U')[0].toUpperCase()}
+                </div>
+              </button>
+              {/* dropdown */}
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-surface py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                {user.name && <p className="px-4 pt-2 pb-0.5 text-sm font-semibold text-text-primary truncate">{user.name}</p>}
+                <p className="px-4 pb-2 text-xs text-text-secondary truncate">{user.phone ?? user.email}</p>
+                <hr className="border-surface mx-2 my-1" />
+                <button
+                  onClick={() => { logout(); resetCart() }}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-surface transition-colors"
+                >
+                  <LogOut className="w-4 h-4" /> Logout
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={openModal}
+              className="group p-2.5 rounded-full text-text-secondary hover:text-secondary hover:bg-secondary/10 hover:ring-2 hover:ring-secondary/30 active:scale-90 transition-all duration-200"
+              aria-label="Login"
+            >
+              <User className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+            </button>
+          )}
 
           <Link
             href="/cart"
             className="relative flex items-center gap-2 bg-gradient-to-r from-secondary to-secondary-light text-white font-semibold px-4 py-2 rounded-full hover:opacity-90 hover:shadow-md hover:shadow-secondary/25 transition-all duration-200 ml-1"
           >
             <ShoppingCart className="w-4 h-4" />
-            {totalItems > 0 && (
+            {mounted && totalItems > 0 && (
               <span className="absolute -top-2 -right-2 bg-primary text-text-primary text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-sm">
                 {totalItems}
               </span>
