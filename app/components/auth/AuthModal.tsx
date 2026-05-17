@@ -15,18 +15,17 @@ const VALUE_CARDS = [
   { emoji: '✨', title: 'Trusted', sub: '5,000+ families can\'t be wrong' },
 ]
 
-type Step = 'phone' | 'otp' | 'name'
+type Step = 'details' | 'otp' | 'name'
 
 export default function AuthModal() {
   const { isModalOpen, closeModal, setAuth } = useAuthStore()
   const syncOnLogin = useCartStore((s) => s.syncOnLogin)
 
-  const [step, setStep] = useState<Step>('phone')
+  const [step, setStep] = useState<Step>('details')
   const [phone, setPhone] = useState('')
-  const [otp, setOtp] = useState(['', '', '', '', '', ''])
+  const [otp, setOtp] = useState(['', '', '', ''])
   const [name, setName] = useState('')
   const [pendingAuth, setPendingAuth] = useState<{ user: Parameters<typeof setAuth>[0], accessToken: string, refreshToken: string } | null>(null)
-  const [notify, setNotify] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [resendTimer, setResendTimer] = useState(0)
@@ -50,15 +49,15 @@ export default function AuthModal() {
 
   function handleClose() {
     closeModal()
-    setStep('phone')
+    setStep('details')
     setPhone('')
-    setOtp(['', '', '', '', '', ''])
+    setOtp(['', '', '', ''])
     setName('')
     setPendingAuth(null)
     setError('')
   }
 
-  async function handlePhoneSubmit(e: React.FormEvent) {
+  async function handleDetailsSubmit(e: React.FormEvent) {
     e.preventDefault()
     const cleaned = phone.replace(/\D/g, '')
     if (cleaned.length !== 10) { setError('Enter a valid 10-digit number'); return }
@@ -85,7 +84,7 @@ export default function AuthModal() {
   async function handleOtpSubmit(e: React.FormEvent) {
     e.preventDefault()
     const code = otp.join('')
-    if (code.length !== 6) { setError('Enter the full 6-digit OTP'); return }
+    if (code.length !== 4) { setError('Enter the full 4-digit OTP'); return }
     setError('')
     setLoading(true)
     try {
@@ -121,7 +120,7 @@ export default function AuthModal() {
     const next = [...otp]
     next[i] = digit
     setOtp(next)
-    if (digit && i < 5) otpRefs.current[i + 1]?.focus()
+    if (digit && i < 3) otpRefs.current[i + 1]?.focus()
   }
 
   async function handleNameSubmit(e: React.FormEvent) {
@@ -133,7 +132,7 @@ export default function AuthModal() {
       const res = await fetch(`${API}/api/v1/auth/me`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${pendingAuth.accessToken}` },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({ name: name.trim(), phone: `+91${phone.replace(/\D/g, '')}` }),
       })
       const json = await res.json()
       if (!res.ok) { setError(json.error?.message ?? 'Failed to save name'); return }
@@ -148,14 +147,13 @@ export default function AuthModal() {
 
   async function handleResend() {
     if (resendTimer > 0) return
-    const cleaned = phone.replace(/\D/g, '')
     await fetch(`${API}/api/v1/auth/request-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: `+91${cleaned}` }),
+      body: JSON.stringify({ phone: `+91${phone.replace(/\D/g, '')}` }),
     })
     setResendTimer(30)
-    setOtp(['', '', '', '', '', ''])
+    setOtp(['', '', '', ''])
     setTimeout(() => otpRefs.current[0]?.focus(), 50)
   }
 
@@ -241,11 +239,11 @@ export default function AuthModal() {
                 {loading ? 'Saving…' : 'Continue'}
               </Button>
             </form>
-          ) : step === 'phone' ? (
-            <form onSubmit={handlePhoneSubmit} className="flex flex-col gap-5">
+          ) : step === 'details' ? (
+            <form onSubmit={handleDetailsSubmit} className="flex flex-col gap-5">
               <div>
-                <h3 className="text-xl font-bold text-text-primary mb-1">Enter your number</h3>
-                <p className="text-sm text-text-secondary">We'll send a one-time OTP to verify</p>
+                <h3 className="text-xl font-bold text-text-primary mb-1">Login or Register</h3>
+                <p className="text-sm text-text-secondary">We'll send a one-time OTP to your mobile</p>
               </div>
 
               {/* Phone input */}
@@ -260,33 +258,16 @@ export default function AuthModal() {
                   maxLength={10}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="Enter Mobile Number"
+                  placeholder="Mobile Number"
                   className="flex-1 px-4 py-3 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none bg-transparent"
                   autoFocus
                 />
               </div>
 
-              {/* Notify checkbox */}
-              <label className="flex items-center gap-2.5 cursor-pointer select-none">
-                <div
-                  onClick={() => setNotify((n) => !n)}
-                  className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                    notify ? 'bg-secondary border-secondary' : 'border-surface bg-white'
-                  }`}
-                >
-                  {notify && (
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
-                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                </div>
-                <span className="text-sm text-text-secondary">Notify me with offers & updates</span>
-              </label>
-
               {error && <p className="text-red-500 text-sm">{error}</p>}
 
               <Button type="submit" disabled={loading} fullWidth size="lg" variant="outline">
-                {loading ? 'Sending…' : 'Submit'}
+                {loading ? 'Sending OTP…' : 'Send OTP'}
               </Button>
 
               <p className="text-center text-xs text-text-secondary leading-relaxed">
@@ -301,10 +282,10 @@ export default function AuthModal() {
               <div>
                 <h3 className="text-xl font-bold text-text-primary mb-1">Verify OTP</h3>
                 <p className="text-sm text-text-secondary">
-                  Sent to +91 {phone}
+                  Sent to +91 {phone.replace(/\D/g, '')}
                   <button
                     type="button"
-                    onClick={() => { setStep('phone'); setError('') }}
+                    onClick={() => { setStep('details'); setError('') }}
                     className="ml-2 text-secondary underline text-xs"
                   >
                     Change

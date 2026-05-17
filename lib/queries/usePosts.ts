@@ -11,18 +11,14 @@ function formatDate(iso: string): string {
   })
 }
 
-async function fetchPosts(category?: string): Promise<Post[]> {
-  const url = new URL(`${API}/api/v1/posts`)
-  if (category && category !== 'All') url.searchParams.set('category', category)
-  const res = await fetch(url.toString())
+async function fetchPosts(): Promise<Post[]> {
+  const res = await fetch(`${API}/api/v1/posts`)
   if (!res.ok) throw new Error('Failed to fetch posts')
   const { data } = await res.json()
   return data.map((p: any) => ({
     id: p.id,
     title: p.title,
-    excerpt: p.excerpt,
     caption: p.caption,
-    category: p.category,
     date: formatDate(p.date),
     image: p.image,
     images: p.images,
@@ -34,10 +30,10 @@ async function fetchPosts(category?: string): Promise<Post[]> {
   }))
 }
 
-export function usePosts(category?: string) {
+export function usePosts() {
   return useQuery<Post[]>({
-    queryKey: ['posts', category],
-    queryFn: () => fetchPosts(category),
+    queryKey: ['posts'],
+    queryFn: fetchPosts,
     staleTime: 5 * 60 * 1000,
   })
 }

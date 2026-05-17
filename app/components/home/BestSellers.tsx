@@ -24,18 +24,20 @@ export default function BestSellers() {
   const { data: products, isLoading, isError, refetch } = useProducts()
 
   return (
-    <section className="bg-background py-20 px-4">
-      <div className="max-w-4xl mx-auto">
+    <section className="relative bg-gradient-to-b from-[#FDFCF7] to-background py-20 px-4 overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-secondary/5 blur-3xl pointer-events-none" />
+      <div className="relative max-w-4xl mx-auto">
         <ScrollReveal animation="up">
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-2 mb-3">
               <Leaf className="w-5 h-5 text-primary" />
-              <span className="text-secondary font-medium text-sm uppercase tracking-widest">
-                Top Picks
+              <span className="text-secondary font-medium text-sm tracking-[0.14em]">
+                A2 Bilona cow ghee
               </span>
               <Leaf className="w-5 h-5 text-primary" />
             </div>
-            <h2 className="text-4xl font-bold text-text-primary">Our Bestsellers</h2>
+            <h2 className="text-4xl font-bold text-text-primary">Two sizes to choose from</h2>
             <div className="w-16 h-1 bg-primary rounded-full mx-auto mt-4" />
           </div>
         </ScrollReveal>
@@ -66,7 +68,7 @@ export default function BestSellers() {
               size="lg"
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
-              View All Products
+              Jars & pricing
             </Button>
           </div>
         </ScrollReveal>

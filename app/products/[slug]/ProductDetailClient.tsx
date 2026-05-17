@@ -224,21 +224,27 @@ function ProductFAQ() {
 export default function ProductDetailClient({ product }: { product: ProductDetail }) {
   const router = useRouter()
   const galleryId = useId()
-  const [active, setActive] = useState(0)
-  const [qty, setQty] = useState(1)
-  const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared'>('idle')
 
   const addItem = useCartStore((s) => s.addItem)
   const updateQty = useCartStore((s) => s.updateQty)
+  const cartItem = useCartStore((s) => s.items.find((i) => i.id === product.id))
+
+  const [active, setActive] = useState(0)
+  const [qty, setQty] = useState(() => cartItem?.quantity ?? 1)
+  const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared'>('idle')
 
   const { images, name, weight, price, mrp, description, highlights, detailParagraphs, badge } = product
   const onSale = mrp != null && mrp > price
   const title = `${name} — ${weight}`
 
   const addToCartWithQty = useCallback(() => {
-    addItem(product)
-    if (qty > 1) updateQty(product.id, qty)
-  }, [addItem, updateQty, product, qty])
+    if (cartItem) {
+      updateQty(product.id, qty)
+    } else {
+      addItem(product)
+      if (qty > 1) updateQty(product.id, qty)
+    }
+  }, [cartItem, addItem, updateQty, product, qty])
 
   const handleBuyNow = useCallback(() => {
     addToCartWithQty()
@@ -413,13 +419,25 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
               >
                 <QtyButton
                   icon={Minus}
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  onClick={() => {
+                    const current = cartItem?.quantity ?? qty
+                    const next = Math.max(1, current - 1)
+                    setQty(next)
+                    if (cartItem) updateQty(product.id, next)
+                  }}
                   label="Decrease quantity"
                 />
-                <span className="font-bold text-text-primary text-lg w-12 text-center tabular-nums">{qty}</span>
+                <span className="font-bold text-text-primary text-lg w-12 text-center tabular-nums">
+                  {cartItem?.quantity ?? qty}
+                </span>
                 <QtyButton
                   icon={Plus}
-                  onClick={() => setQty((q) => Math.min(99, q + 1))}
+                  onClick={() => {
+                    const current = cartItem?.quantity ?? qty
+                    const next = Math.min(99, current + 1)
+                    setQty(next)
+                    if (cartItem) updateQty(product.id, next)
+                  }}
                   label="Increase quantity"
                   filled
                 />

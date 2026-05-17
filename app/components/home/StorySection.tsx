@@ -41,7 +41,7 @@ export default function StorySection() {
       </div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-background/72" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/55 via-background/38 to-background/55" />
 
       {/* Content */}
       <div className="relative z-10 w-full py-16 px-4">

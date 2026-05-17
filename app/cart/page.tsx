@@ -24,7 +24,7 @@ export default function CartPage() {
 
         {empty ? (
           <div className="rounded-3xl border border-dashed border-secondary/25 bg-surface/80 px-8 py-16 text-center">
-            <ShoppingBag className="w-12 h-12 mx-auto text-secondary/40 mb-4" aria-hidden />
+          <ShoppingBag className="w-12 h-12 mx-auto text-secondary/40 mb-4" aria-hidden />
             <p className="text-text-primary font-semibold mb-1">Your cart is empty</p>
             <p className="text-text-secondary text-sm mb-6">Add ghee from our shop to get started.</p>
             <Button href="/products" size="lg">

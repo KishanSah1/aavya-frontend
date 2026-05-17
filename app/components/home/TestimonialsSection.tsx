@@ -34,8 +34,10 @@ export default function TestimonialsSection() {
   const doubled = testimonials ? [...testimonials, ...testimonials] : []
 
   return (
-    <section className="bg-background py-20 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4">
+    <section className="relative bg-background py-20 overflow-hidden">
+      <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-primary/6 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-secondary/5 blur-3xl pointer-events-none" />
+      <div className="relative max-w-7xl mx-auto px-4">
         <ScrollReveal animation="up">
           <div className="text-center mb-12">
             <div className="flex items-center justify-center mb-3">
@@ -50,7 +52,7 @@ export default function TestimonialsSection() {
             <div className="w-16 h-1 bg-primary rounded-full mx-auto mt-4" />
           </div>
         </ScrollReveal>
-      </div>
+        </div>
 
       {/* Full-bleed marquee */}
       <div className="relative">
