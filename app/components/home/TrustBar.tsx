@@ -24,8 +24,10 @@ const TRUST_ITEMS = [
 
 export default function TrustBar() {
   return (
-    <section className="bg-background border-y border-surface py-12 px-4">
-      <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3">
+    <section className="relative bg-background border-y border-primary/10 py-12 px-4 overflow-hidden">
+      <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-primary/6 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-secondary/5 blur-3xl pointer-events-none" />
+      <div className="relative max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3">
         {TRUST_ITEMS.map(({ icon: Icon, title, description }, index) => (
           <ScrollReveal key={title} animation="up" delay={index * 130}>
             <div

@@ -6,10 +6,18 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
   const store = useAuthStore.getState()
   if (!store.accessToken) return fetch(url, options)
 
-  const withBearer = (token: string): RequestInit => ({
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...options.headers, Authorization: `Bearer ${token}` },
-  })
+  const withBearer = (token: string): RequestInit => {
+    const isFormData = options.body instanceof FormData
+    const hasBody = options.body != null
+    return {
+      ...options,
+      headers: {
+        ...(hasBody && !isFormData ? { 'Content-Type': 'application/json' } : {}),
+        ...options.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  }
 
   const res = await fetch(url, withBearer(store.accessToken))
   if (res.status !== 401 || !store.refreshToken) return res

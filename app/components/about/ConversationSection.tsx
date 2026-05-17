@@ -103,28 +103,34 @@ function Avatar({ speaker }: { speaker: Speaker }) {
   )
 }
 
-/* ── Whisper ── */
+/* Chat line typography — one scale for every bubble (whisper / statement / story body) */
+const CHAT_TEXT =
+  'text-lg sm:text-xl md:text-2xl leading-snug'
+
+/* ── Whisper (same type size as statements; tone via weight & colour only) ── */
 function Whisper({ msg, idx }: { msg: Msg; idx: number }) {
   const { ref, on } = useReveal()
   const isB = msg.speaker === 'b'
   return (
     <div
       ref={ref}
-      className={`flex items-center gap-4 py-7 md:py-10 px-6 sm:px-10
+      className={`flex items-start gap-3 py-2.5 px-6 sm:px-10
         ${isB ? 'flex-row-reverse' : 'flex-row'}
-        transition-all duration-700
-        ${on ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
+        transition-all duration-600
+        ${on ? 'opacity-100 translate-x-0' : isB ? 'opacity-0 translate-x-6' : 'opacity-0 -translate-x-6'}`}
       style={{ transitionDelay: `${idx * 18}ms` }}
     >
       <Avatar speaker={msg.speaker} />
-      <p className={`whitespace-pre-line leading-tight tracking-tight
-        text-3xl sm:text-4xl md:text-5xl
-        ${isB
-          ? 'text-secondary font-bold text-right'
-          : 'text-stone-700 font-semibold italic text-left'}`}
-      >
-        {msg.lines[0]}
-      </p>
+      <div className={`max-w-[75%] sm:max-w-[65%] pt-1.5 ${isB ? 'text-right' : 'text-left'}`}>
+        <p
+          className={`whitespace-pre-line ${CHAT_TEXT}
+          ${isB
+            ? 'font-semibold text-secondary'
+            : 'font-medium italic text-stone-600'}`}
+        >
+          {msg.lines[0]}
+        </p>
+      </div>
     </div>
   )
 }
@@ -144,7 +150,8 @@ function Statement({ msg, idx }: { msg: Msg; idx: number }) {
     >
       <Avatar speaker={msg.speaker} />
       <div className={`max-w-[75%] sm:max-w-[65%] pt-1.5 ${isB ? 'text-right' : 'text-left'}`}>
-        <p className={`text-lg sm:text-xl md:text-2xl leading-snug
+        <p
+          className={`${CHAT_TEXT}
           ${isB
             ? 'font-semibold text-secondary'
             : 'font-medium italic text-stone-600'}`}
@@ -182,11 +189,16 @@ function StoryCard({ msg, idx }: { msg: Msg; idx: number }) {
         />
         <div className="px-6 py-6 sm:px-8 sm:py-7 space-y-3">
           {msg.lines.map((line, i) => (
-            <p key={i} className={`leading-relaxed
+            <p
+              key={i}
+              className={`${CHAT_TEXT} leading-relaxed
               ${i === 0
-                ? `text-xl sm:text-2xl font-bold ${isB ? 'text-secondary' : 'text-stone-800'}`
-                : `text-sm sm:text-base ${isB ? 'text-secondary/75' : 'text-stone-500'}`
-              }`}
+                ? isB
+                  ? 'font-semibold text-secondary'
+                  : 'font-semibold text-stone-800'
+                : isB
+                  ? 'font-medium text-secondary/80'
+                  : 'font-medium text-stone-600'}`}
             >
               {line}
             </p>
@@ -207,7 +219,7 @@ function Beat() {
 
 export default function ConversationSection() {
   return (
-    <section className="py-10 md:py-16 border-t border-surface/80">
+    <section className="py-10 md:py-16 border-t border-primary/10">
 
       <div className="text-center mb-8 md:mb-12 px-4">
         <p className="flex items-center justify-center gap-2 text-secondary font-semibold text-xs uppercase tracking-[0.2em] mb-3">

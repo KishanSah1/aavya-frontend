@@ -123,8 +123,40 @@ body {
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* box-shadow here — not filter on .flip-card-inner — keeps preserve-3d + backface-visibility working */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 .flip-card-back { transform: rotateY(180deg); }
+
+/* Certificate lightbox (home certifications) */
+@keyframes certLightboxBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes certLightboxDialogIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.cert-lightbox-backdrop {
+  animation: certLightboxBackdropIn 0.28s ease-out forwards;
+}
+.cert-lightbox-dialog {
+  animation: certLightboxDialogIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cert-lightbox-backdrop,
+  .cert-lightbox-dialog {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
 
 /* ── Card hover — spin icon ring ──────────────────────────────────────────── */
 .why-card:hover .why-spin { animation: badgeSpin 4s linear infinite; }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ShoppingCart, Search, User, LogOut } from 'lucide-react'
+import { Menu, X, ShoppingCart, Search, User, LogOut, LayoutDashboard, Package } from 'lucide-react'
 import { useCartStore } from '@/lib/store/cartStore'
 import { useAuthStore } from '@/lib/store/authStore'
 import type { NavLink } from '@/lib/types'
@@ -18,6 +18,7 @@ export default function NavbarClient({ links }: NavbarClientProps) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const totalItems = useCartStore((s) => s.totalItems())
 
   useEffect(() => { setMounted(true) }, [])
@@ -81,6 +82,22 @@ export default function NavbarClient({ links }: NavbarClientProps) {
               </Link>
             )
           })}
+          {user?.role === 'admin' && (
+            <Link
+              href="/admin"
+              className={[
+                'relative px-4 py-2 text-sm font-medium transition-colors duration-200 flex items-center gap-1.5',
+                'after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2',
+                'after:h-[2px] after:bg-secondary after:transition-all after:duration-300',
+                pathname.startsWith('/admin')
+                  ? 'text-secondary after:w-[calc(100%-2rem)]'
+                  : 'text-text-primary hover:text-secondary after:w-0 hover:after:w-[calc(100%-2rem)]',
+              ].join(' ')}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Admin
+            </Link>
+          )}
         </nav>
 
         {/* Right actions */}
@@ -108,9 +125,16 @@ export default function NavbarClient({ links }: NavbarClientProps) {
                 {user.name && <p className="px-4 pt-2 pb-0.5 text-sm font-semibold text-text-primary truncate">{user.name}</p>}
                 <p className="px-4 pb-2 text-xs text-text-secondary truncate">{user.phone ?? user.email}</p>
                 <hr className="border-surface mx-2 my-1" />
+                <Link
+                  href="/orders"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-surface transition-colors"
+                >
+                  <Package className="w-4 h-4" /> My Orders
+                </Link>
+                <hr className="border-surface mx-2 my-1" />
                 <button
-                  onClick={() => { logout(); resetCart() }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-surface transition-colors"
+                  onClick={() => setShowLogoutConfirm(true)}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
                 >
                   <LogOut className="w-4 h-4" /> Logout
                 </button>
@@ -197,10 +221,58 @@ export default function NavbarClient({ links }: NavbarClientProps) {
                   </Link>
                 )
               })}
+              {user?.role === 'admin' && (
+                <Link
+                  href="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className={[
+                    'px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-2',
+                    pathname.startsWith('/admin')
+                      ? 'bg-secondary/10 text-secondary'
+                      : 'text-text-primary hover:bg-surface hover:text-secondary',
+                  ].join(' ')}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Admin
+                </Link>
+              )}
             </nav>
           </div>
         )}
       </div>
+
+      {/* Logout confirmation modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-reveal-fade"
+            onClick={() => setShowLogoutConfirm(false)}
+          />
+          <div className="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-modal-in">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <LogOut className="w-5 h-5 text-red-500" />
+            </div>
+            <h2 className="text-lg font-bold text-text-primary text-center mb-1">Log out?</h2>
+            <p className="text-text-secondary text-sm text-center mb-6">
+              You'll need to sign in again to access your account.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 border border-surface text-text-primary font-semibold py-2.5 rounded-xl text-sm hover:bg-surface transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { logout(); resetCart(); setShowLogoutConfirm(false) }}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+              >
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   )
 }

@@ -47,7 +47,9 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0)
 
   return (
-    <section className="relative py-24 px-4">
+    <section className="relative bg-gradient-to-b from-background to-[#FDFCF7] py-24 px-4 overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] rounded-full bg-secondary/5 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
       <div className="relative z-10 max-w-2xl mx-auto">
         <ScrollReveal animation="up">
           <div className="text-center mb-12">
@@ -65,10 +67,10 @@ export default function FAQSection() {
             const isOpen = openIndex === i
             return (
               <ScrollReveal key={i} animation="up" delay={i * 60}>
-                <div className="bg-background/90 backdrop-blur-sm rounded-2xl border border-surface overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:border-primary/20">
+                <div className="bg-background/90 backdrop-blur-sm rounded-2xl border border-surface overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:border-primary/20 cursor-pointer">
                   <button
                     onClick={() => setOpenIndex(isOpen ? null : i)}
-                    className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left"
+                    className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left cursor-pointer"
                     aria-expanded={isOpen}
                   >
                     <span className="font-semibold text-text-primary text-sm md:text-base">

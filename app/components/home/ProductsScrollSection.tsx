@@ -39,10 +39,10 @@ export default function ProductsScrollSection() {
         <div className="flex items-end justify-between mb-8">
           <div>
             <p className="text-sm font-medium uppercase tracking-widest text-gradient-green mb-1">
-              All Products
+              A2 bilona ghee
             </p>
             <h2 className="text-3xl font-bold text-text-primary">
-              Shop Our Range
+              Two jar sizes
             </h2>
           </div>
 
@@ -70,7 +70,7 @@ export default function ProductsScrollSection() {
               className="hidden sm:inline-flex"
               rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
             >
-              View All
+              Jars & pricing
             </Button>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function ProductsScrollSection() {
             size="md"
             rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
           >
-            View All Products
+            Jars & pricing
           </Button>
         </div>
       </div>

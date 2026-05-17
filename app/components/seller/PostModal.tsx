@@ -6,20 +6,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   X, Heart, MessageCircle, Share2, Bookmark,
-  ChevronLeft, ChevronRight, ArrowRight, Sprout, Flame, Sun, Users,
+  ChevronLeft, ChevronRight, ArrowRight,
 } from 'lucide-react'
 import type { Post, Comment } from '@/app/seller/types'
+import { fetchWithAuth } from '@/lib/fetchWithAuth'
+import { useAuthStore } from '@/lib/store/authStore'
 
-// ─── Category meta ────────────────────────────────────────────────────────────
-
-const CATEGORY_META = {
-  Farm:     { pill: 'bg-secondary/10 text-secondary border-secondary/25',  icon: Sprout },
-  Process:  { pill: 'bg-primary/12 text-[#8B6914] border-primary/25',     icon: Flame  },
-  Seasonal: { pill: 'bg-orange-50 text-orange-700 border-orange-200',      icon: Sun    },
-  Team:     { pill: 'bg-amber-50 text-amber-800 border-amber-200',         icon: Users  },
-}
-
-// ─── Props ────────────────────────────────────────────────────────────────────
+const API = process.env.NEXT_PUBLIC_API_BASE_URL
 
 interface PostModalProps {
   post: Post
@@ -28,9 +21,13 @@ interface PostModalProps {
   onNext?: () => void
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+function formatCommentDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+}
 
 export default function PostModal({ post, onClose, onPrev, onNext }: PostModalProps) {
+  const user = useAuthStore((s) => s.user)
+
   const [currentImage, setCurrentImage] = useState(0)
   const [liked, setLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(post.likes)
@@ -39,17 +36,37 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
   const [likeAnimKey, setLikeAnimKey] = useState(0)
   const [commentText, setCommentText] = useState('')
   const [comments, setComments] = useState<Comment[]>(post.comments)
+  const [commentLoading, setCommentLoading] = useState(false)
+  const [likeLoading, setLikeLoading] = useState(false)
   const commentRef = useRef<HTMLInputElement>(null)
   const heartTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Reset when post changes
+  // Reset when post changes and fetch comments from API
   useEffect(() => {
     setCurrentImage(0)
     setLiked(false)
     setLikeCount(post.likes)
     setSaved(false)
-    setComments(post.comments)
-  }, [post])
+    setComments([])
+    setCommentText('')
+
+    fetch(`${API}/api/v1/posts/${post.id}/comments`)
+      .then((r) => r.json())
+      .then(({ data }) => {
+        setComments(
+          (data as any[]).map((c) => ({
+            id: c.id,
+            author: c.author,
+            initials: c.initials,
+            text: c.text,
+            time: formatCommentDate(c.createdAt),
+          })),
+        )
+      })
+      .catch(() => {})
+  // only reset when the post itself changes, not on every likes count update
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post.id])
 
   // Lock body scroll
   useEffect(() => {
@@ -69,14 +86,36 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
     return () => window.removeEventListener('keydown', handler)
   }, [onClose, onPrev, onNext])
 
-  const triggerLike = useCallback(() => {
-    setLiked((prev) => {
-      const next = !prev
-      setLikeCount((c) => (next ? c + 1 : c - 1))
-      return next
-    })
+  const triggerLike = useCallback(async () => {
+    if (likeLoading) return
+    const next = !liked
+    setLiked(next)
+    setLikeCount((c) => (next ? c + 1 : c - 1))
     setLikeAnimKey((k) => k + 1)
-  }, [])
+    setLikeLoading(true)
+
+    try {
+      const res = await fetchWithAuth(`${API}/api/v1/posts/${post.id}/like`, {
+        method: next ? 'POST' : 'DELETE',
+      })
+      if (res.ok) {
+        const { data } = await res.json()
+        setLikeCount(data.likeCount)
+      } else if (next && res.status === 409) {
+        setLiked(true)
+      } else if (!next && res.status === 404) {
+        setLiked(false)
+      } else {
+        setLiked(!next)
+        setLikeCount((c) => (next ? c - 1 : c + 1))
+      }
+    } catch {
+      setLiked(!next)
+      setLikeCount((c) => (next ? c - 1 : c + 1))
+    } finally {
+      setLikeLoading(false)
+    }
+  }, [liked, likeLoading, post.id])
 
   const handleImageClick = useCallback(() => {
     if (!liked) {
@@ -87,23 +126,52 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
     }
   }, [liked, triggerLike])
 
-  const handleComment = () => {
-    if (!commentText.trim()) return
-    const next: Comment = {
-      id: Date.now(),
-      author: 'You',
-      initials: 'YO',
-      text: commentText.trim(),
-      time: 'Just now',
+  const handleSave = useCallback(async () => {
+    const next = !saved
+    setSaved(next)
+    try {
+      await fetchWithAuth(`${API}/api/v1/posts/${post.id}/save`, {
+        method: next ? 'POST' : 'DELETE',
+      })
+    } catch {
+      setSaved(!next)
     }
-    setComments((c) => [...c, next])
+  }, [saved, post.id])
+
+  const handleComment = async () => {
+    if (!commentText.trim() || commentLoading) return
+    const text = commentText.trim()
     setCommentText('')
+    setCommentLoading(true)
+    try {
+      const res = await fetchWithAuth(`${API}/api/v1/posts/${post.id}/comments`, {
+        method: 'POST',
+        body: JSON.stringify({ text }),
+      })
+      const { data } = await res.json()
+      if (res.ok) {
+        setComments((c) => [
+          ...c,
+          {
+            id: data.id,
+            author: data.author,
+            initials: data.initials,
+            text: data.text,
+            time: 'Just now',
+          },
+        ])
+      }
+    } catch {
+      // silently fail — comment text already cleared
+    } finally {
+      setCommentLoading(false)
+    }
   }
 
-  const meta = CATEGORY_META[post.category]
-  const Icon = meta.icon
+  const userInitials = user?.name
+    ? user.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
+    : 'G'
 
-  // Portal: bypasses the stacking context created by <main>'s CSS transform animation
   return createPortal(
     <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center">
       {/* Backdrop */}
@@ -138,7 +206,7 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
       <div className="
         relative z-10 w-full bg-white
         flex flex-col md:flex-row
-        h-[94vh] md:h-auto md:max-h-[92vh]
+        h-[94vh] md:h-[88vh] md:max-h-[860px]
         md:max-w-[900px] md:mx-6
         rounded-t-3xl md:rounded-2xl
         overflow-hidden shadow-2xl
@@ -147,7 +215,7 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
 
         {/* ── Left: Image panel ── */}
         <div
-          className="relative md:w-[52%] shrink-0 bg-black h-[46vw] min-h-[240px] md:h-auto cursor-pointer select-none"
+          className="relative md:w-[52%] shrink-0 bg-black h-[46vw] min-h-[240px] md:h-full cursor-pointer select-none"
           onDoubleClick={handleImageClick}
         >
           {/* Images (cross-fade) */}
@@ -232,12 +300,6 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
           {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
 
-            {/* Category badge */}
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${meta.pill}`}>
-              <Icon className="w-3 h-3" />
-              {post.category}
-            </span>
-
             {/* Caption */}
             <div className="text-text-primary text-sm leading-[1.7] whitespace-pre-line">
               <span className="font-bold text-text-primary mr-1.5">{post.author}</span>
@@ -289,7 +351,8 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
                 <button
                   key={likeAnimKey}
                   onClick={triggerLike}
-                  className={`transition-colors duration-200 ${liked ? 'text-red-500' : 'text-text-secondary hover:text-text-primary'} ${likeAnimKey > 0 ? 'animate-like-jump' : ''}`}
+                  disabled={likeLoading}
+                  className={`transition-colors duration-200 disabled:opacity-70 ${liked ? 'text-red-500' : 'text-text-secondary hover:text-text-primary'} ${likeAnimKey > 0 ? 'animate-like-jump' : ''}`}
                   aria-label="Like"
                 >
                   <Heart className={`w-6 h-6 transition-all duration-200 ${liked ? 'fill-red-500 scale-110' : ''}`} />
@@ -306,7 +369,7 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
                 </button>
               </div>
               <button
-                onClick={() => setSaved((s) => !s)}
+                onClick={handleSave}
                 className={`transition-colors duration-200 ${saved ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
                 aria-label="Save"
               >
@@ -319,7 +382,7 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
           {/* Comment input */}
           <div className="border-t border-surface px-4 py-3 flex items-center gap-3 shrink-0">
             <div className="w-7 h-7 rounded-full bg-secondary/15 flex items-center justify-center text-[10px] font-bold text-secondary shrink-0">
-              YO
+              {userInitials}
             </div>
             <input
               ref={commentRef}
@@ -332,15 +395,16 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
             {commentText.trim() && (
               <button
                 onClick={handleComment}
-                className="text-secondary font-bold text-sm hover:text-secondary-light transition-colors shrink-0"
+                disabled={commentLoading}
+                className="text-secondary font-bold text-sm hover:text-secondary-light transition-colors shrink-0 disabled:opacity-50"
               >
-                Post
+                {commentLoading ? '…' : 'Post'}
               </button>
             )}
           </div>
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   )
 }

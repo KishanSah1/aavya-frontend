@@ -1,10 +1,19 @@
 'use client'
 
-import { ShieldCheck, FlaskConical, Leaf } from 'lucide-react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import {
+  ArrowRight,
+  BadgeCheck,
+  FlaskConical,
+  Leaf,
+  Maximize2,
+  ShieldCheck,
+  X,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import ScrollReveal from '@/app/components/ScrollReveal'
-
-// ─── Data ──────────────────────────────────────────────────────────────────────
+import Button from '@/app/components/ui/Button'
 
 interface Cert {
   id: string
@@ -12,16 +21,14 @@ interface Cert {
   sub: string
   tagline: string
   icon: LucideIcon
-  headerBg: string      // header band gradient on certificate
-  sealColor: string     // seal ring color
-  doc: {
-    issuer: string
-    issuerShort: string
-    number: string
-    issued: string
-    valid: string
-    scope: string
-  }
+  /** One line for the lightbox — why this credential matters for buyers */
+  trustBlurb: string
+}
+
+const CERT_SVG: Record<string, string> = {
+  fssai: '/aavya/cert-fssai.svg',
+  nabl: '/aavya/cert-nabl.svg',
+  a2: '/aavya/cert-a2milk.svg',
 }
 
 const CERTS: Cert[] = [
@@ -31,16 +38,7 @@ const CERTS: Cert[] = [
     sub: 'Licensed',
     tagline: "India's highest food safety authority",
     icon: ShieldCheck,
-    headerBg: 'from-[#0d2137] to-[#1a3a5c]',
-    sealColor: '#1a3a5c',
-    doc: {
-      issuer: 'Food Safety and Standards Authority of India',
-      issuerShort: 'FSSAI, Govt. of India',
-      number: 'Lic. No. 24220244000####',
-      issued: '15 Mar 2024',
-      valid: '14 Mar 2026',
-      scope: 'Manufacturing & Sale of Ghee and Dairy Products',
-    },
+    trustBlurb: 'Central licensing means every batch is produced under audited food-safety standards you can rely on.',
   },
   {
     id: 'nabl',
@@ -48,16 +46,7 @@ const CERTS: Cert[] = [
     sub: 'Lab Verified',
     tagline: 'Every batch independently tested',
     icon: FlaskConical,
-    headerBg: 'from-[#0d3330] to-[#114e49]',
-    sealColor: '#0d3330',
-    doc: {
-      issuer: 'National Accreditation Board for Testing & Calibration Laboratories',
-      issuerShort: 'NABL, Dept. of Science & Technology',
-      number: 'Accreditation No. T-####',
-      issued: '01 Jan 2024',
-      valid: '31 Dec 2025',
-      scope: 'Purity, Adulteration & Composition Testing — Ghee & Dairy',
-    },
+    trustBlurb: 'NABL-accredited labs test independently so purity and composition are verified—not just claimed.',
   },
   {
     id: 'a2',
@@ -65,70 +54,129 @@ const CERTS: Cert[] = [
     sub: 'Certified',
     tagline: 'Genuine Gir cow A2 beta-casein',
     icon: Leaf,
-    headerBg: 'from-[#1a3d28] to-[#2d6040]',
-    sealColor: '#1a3d28',
-    doc: {
-      issuer: 'Certified Gir Cow Farm Network, India',
-      issuerShort: 'A2 Milk Certification Board',
-      number: 'Cert. No. A2/GIR/2024/####',
-      issued: '20 Feb 2024',
-      valid: '19 Feb 2026',
-      scope: 'A2 β-Casein Verified Milk from Indigenous Gir Cow Breed',
-    },
+    trustBlurb: 'A2 β-casein certification confirms the milk matches what we promise on the label, from indigenous Gir cows.',
   },
 ]
 
-// ─── Circular seal (SVG) ───────────────────────────────────────────────────────
+function CertificateLightbox({ cert, onClose }: { cert: Cert; onClose: () => void }) {
+  const Icon = cert.icon
+  const titleId = useId()
+  const closeBtnRef = useRef<HTMLButtonElement>(null)
 
-function Seal({ icon: Icon, color }: { icon: LucideIcon; color: string }) {
-  return (
-    <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
-      <svg viewBox="0 0 64 64" className="absolute inset-0 w-full h-full">
-        {/* Outer dashed ring */}
-        <circle cx="32" cy="32" r="30" fill="none" stroke={color} strokeWidth="1" strokeDasharray="3 2" />
-        {/* Inner ring */}
-        <circle cx="32" cy="32" r="24" fill="none" stroke={color} strokeWidth="0.75" opacity="0.5" />
-        {/* Fill */}
-        <circle cx="32" cy="32" r="21" fill={color} opacity="0.08" />
-        {/* Circular text */}
-        <defs>
-          <path id={`seal-text-${color}`} d="M32,6 A26,26 0 1,1 31.999,6" />
-        </defs>
-        <text fontSize="5.2" fill={color} fontWeight="700" letterSpacing="1.5">
-          <textPath href={`#seal-text-${color}`} startOffset="2%">
-            CERTIFIED • AAVYA FOODS • INDIA •
-          </textPath>
-        </text>
-      </svg>
-      {/* Icon in center */}
-      <div className="w-9 h-9 rounded-full flex items-center justify-center border" style={{ borderColor: color + '40', backgroundColor: color + '12' }}>
-        <Icon className="w-4 h-4" style={{ color }} strokeWidth={1.5} />
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const t = window.setTimeout(() => closeBtnRef.current?.focus(), 30)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.clearTimeout(t)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [onClose])
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[99] flex items-end justify-center sm:items-center p-0 sm:p-5"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+    >
+      <div
+        className="cert-lightbox-backdrop absolute inset-0 bg-[#1a2e1a]/55 backdrop-blur-md"
+        aria-hidden
+        onClick={onClose}
+      />
+
+      <div className="cert-lightbox-dialog relative z-10 flex w-full max-w-3xl flex-col overflow-hidden rounded-t-[1.75rem] border border-secondary/15 bg-[#FDFCF0] shadow-[0_-12px_48px_rgba(0,0,0,0.18)] sm:rounded-3xl sm:shadow-2xl sm:max-h-[min(92vh,880px)]">
+        {/* Top accent */}
+        <div className="h-1 w-full bg-gradient-green shrink-0" />
+
+        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3 sm:px-7 sm:pt-6">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary/10 text-secondary ring-1 ring-secondary/20">
+              <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+            </div>
+            <div className="min-w-0 pt-0.5">
+              <div className="mb-1 inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-secondary ring-1 ring-secondary/15">
+                <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
+                Verified document
+              </div>
+              <h2 id={titleId} className="text-xl font-extrabold tracking-tight text-text-primary sm:text-2xl">
+                {cert.name} · {cert.sub}
+              </h2>
+              <p className="mt-1 text-sm leading-relaxed text-text-secondary/85">{cert.trustBlurb}</p>
+            </div>
+          </div>
+
+          <button
+            ref={closeBtnRef}
+            type="button"
+            onClick={onClose}
+            className="shrink-0 rounded-full p-2 text-text-secondary/70 transition-colors hover:bg-black/[0.04] hover:text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* Certificate frame */}
+        <div className="mx-4 mb-4 flex min-h-0 flex-1 flex-col rounded-2xl border border-secondary/12 bg-[#FFFEF5] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_24px_rgba(46,125,50,0.06)] sm:mx-7 sm:mb-5">
+          <div className="max-h-[min(52vh,480px)] min-h-[200px] flex-1 overflow-auto p-3 sm:max-h-[min(58vh,560px)] sm:p-5">
+            <img
+              src={CERT_SVG[cert.id]}
+              alt={`Official ${cert.name} certificate for Aavya Foods`}
+              className="mx-auto w-full max-w-[640px] select-none rounded-lg shadow-sm"
+              draggable={false}
+            />
+          </div>
+          <p className="border-t border-secondary/[0.08] px-4 py-3 text-center text-[11px] leading-snug text-text-secondary/55 sm:text-xs">
+            Displayed for transparency. Details on the certificate are representative of our compliance programme.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-secondary/10 bg-white/60 px-5 py-4 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-5">
+          <p className="text-center text-sm font-medium text-text-secondary sm:text-left">
+            Shop knowing what goes into every jar.
+          </p>
+          <Button href="/products" variant="primary" size="md" rightIcon={<ArrowRight className="h-4 w-4" />}>
+            Browse products
+          </Button>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
 // ─── Card ──────────────────────────────────────────────────────────────────────
 
-function CertCard({ cert }: { cert: Cert }) {
+function CertCard({ cert, onOpenCert }: { cert: Cert; onOpenCert: (c: Cert) => void }) {
   const Icon = cert.icon
 
   return (
     <div
-      className="flip-card w-full h-[370px] cursor-pointer"
-      role="button"
+      className="flip-card w-full h-[370px] outline-none"
+      role="region"
       tabIndex={0}
-      aria-label={`${cert.name} ${cert.sub}`}
-      onKeyDown={(e) => e.key === 'Enter' && (e.currentTarget as HTMLElement).classList.toggle('is-flipped')}
+      aria-label={`${cert.name} certification. Press Enter or Space to flip the card.`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const el = e.target as HTMLElement
+          if (el.closest('button')) return
+          e.preventDefault()
+          ;(e.currentTarget as HTMLElement).classList.toggle('is-flipped')
+        }
+      }}
     >
-      <div className="flip-card-inner rounded-2xl" style={{ filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.10))' }}>
-
+      <div className="flip-card-inner rounded-2xl">
         {/* ── FRONT ── */}
         <div className="flip-card-face flip-card-front flex flex-col items-center justify-between bg-[#FDFCF0] border border-primary/20 rounded-2xl p-6 overflow-hidden">
-          {/* Top gold stripe */}
           <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary/0 via-primary to-primary/0 rounded-t-2xl" />
 
-          {/* Animated badge */}
           <div className="relative w-28 h-28 flex items-center justify-center">
             <div className="absolute inset-0 rounded-full border-[1.5px] border-dashed border-primary/50 animate-badge-spin" />
             <div className="absolute inset-[10px] rounded-full border border-primary/20" />
@@ -142,116 +190,43 @@ function CertCard({ cert }: { cert: Cert }) {
             ))}
           </div>
 
-          {/* Label */}
           <div className="text-center">
             <p className="text-primary text-[10px] font-bold uppercase tracking-[0.22em] mb-0.5">{cert.sub}</p>
             <h3 className="text-text-primary font-extrabold text-2xl leading-tight">{cert.name}</h3>
             <p className="text-text-secondary/60 text-xs mt-2 leading-relaxed">{cert.tagline}</p>
           </div>
 
-          {/* Hint */}
           <div className="flex items-center gap-2 text-secondary/35 text-[10px]">
             <span className="w-4 h-px bg-secondary/25" />
-            hover to view certificate
+            hover to flip · then open certificate
             <span className="w-4 h-px bg-secondary/25" />
           </div>
 
-          {/* Bottom green stripe */}
           <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-secondary/0 via-secondary/40 to-secondary/0 rounded-b-2xl" />
         </div>
 
-        {/* ── BACK: Certificate document ── */}
-        <div className="flip-card-face flip-card-back rounded-2xl overflow-hidden flex flex-col bg-[#FEFDF8]">
-
-          {/* Official header band */}
-          <div className={`bg-gradient-to-r ${cert.headerBg} px-5 py-3.5 shrink-0`}>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
-                <Icon className="w-4.5 h-4.5 text-white" strokeWidth={1.5} />
-              </div>
-              <div>
-                <p className="text-white/50 text-[8px] uppercase tracking-[0.2em] leading-none mb-0.5">
-                  {cert.doc.issuerShort}
-                </p>
-                <p className="text-white font-bold text-[13px] leading-tight">
-                  {cert.name} {cert.sub}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Document body */}
-          <div className="flex-1 flex flex-col px-5 py-4 relative overflow-hidden">
-
-            {/* Faint watermark */}
-            <div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-              aria-hidden
-            >
-              <p
-                className="text-[56px] font-black uppercase tracking-widest opacity-[0.025] rotate-[-25deg] text-text-primary whitespace-nowrap"
-                style={{ fontFamily: 'Georgia, serif' }}
-              >
-                CERTIFIED
-              </p>
-            </div>
-
-            {/* Corner brackets */}
-            <div className="absolute top-2 left-2 w-5 h-5 border-t-2 border-l-2 border-primary/25 rounded-tl-sm" />
-            <div className="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-primary/25 rounded-tr-sm" />
-            <div className="absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-primary/25 rounded-bl-sm" />
-            <div className="absolute bottom-2 right-2 w-5 h-5 border-b-2 border-r-2 border-primary/25 rounded-br-sm" />
-
-            {/* Certificate title */}
-            <div className="text-center mb-3 relative z-10">
-              <p className="text-text-secondary/40 text-[8px] uppercase tracking-[0.25em] mb-0.5">
-                Certificate of Compliance
-              </p>
-              <div className="flex items-center gap-1.5 justify-center">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent to-primary/30" />
-                <div className="w-1 h-1 rounded-full bg-primary/50" />
-                <div className="h-px flex-1 bg-gradient-to-l from-transparent to-primary/30" />
-              </div>
-            </div>
-
-            {/* Main cert text */}
-            <div className="text-center mb-3 relative z-10">
-              <p className="text-text-secondary/50 text-[9px] mb-1">This is to certify that</p>
-              <p className="text-text-primary font-extrabold text-[17px] leading-tight" style={{ fontFamily: 'Georgia, serif' }}>
-                Aavya Foods
-              </p>
-              <p className="text-text-secondary/50 text-[9px] mt-1 mb-1.5">meets the requirements for</p>
-              <p className="text-[11px] font-semibold text-text-primary/80 leading-snug px-2">
-                {cert.doc.scope}
-              </p>
-            </div>
-
-            {/* Details table */}
-            <div className="space-y-1.5 text-[9px] border-t border-dashed border-primary/15 pt-2.5 relative z-10">
-              {[
-                ['Issuing Body', cert.doc.issuer],
-                ['Certificate No.', cert.doc.number],
-                ['Date of Issue', cert.doc.issued],
-                ['Valid Until', cert.doc.valid],
-              ].map(([label, value]) => (
-                <div key={label} className="flex justify-between gap-2">
-                  <span className="text-text-secondary/45 shrink-0">{label}</span>
-                  <span className="text-text-primary/70 font-medium text-right leading-tight">{value}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Footer: signature + seal */}
-            <div className="flex items-end justify-between mt-auto pt-3 relative z-10">
-              <div>
-                <div className="h-px w-20 bg-text-primary/20 mb-1" />
-                <p className="text-[8px] text-text-secondary/40">Authorised Signatory</p>
-              </div>
-              <Seal icon={Icon} color={cert.sealColor} />
-            </div>
-          </div>
+        {/* ── BACK (official certificate — opens lightbox) ── */}
+        <div className="flip-card-face flip-card-back rounded-2xl overflow-hidden bg-[#FFFEF5] border border-primary/15">
+          <button
+            type="button"
+            className="flex h-full w-full min-h-0 cursor-zoom-in flex-col focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-secondary"
+            onClick={() => onOpenCert(cert)}
+            aria-label={`Open full ${cert.name} certificate in a window`}
+          >
+            <span className="flex min-h-0 flex-1 items-center justify-center p-2 sm:p-3">
+              <img
+                src={CERT_SVG[cert.id]}
+                alt=""
+                className="max-h-full w-full object-contain object-center select-none"
+                draggable={false}
+              />
+            </span>
+            <span className="flex shrink-0 items-center justify-center gap-1.5 border-t border-secondary/10 bg-secondary/[0.04] py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-secondary/80">
+              <Maximize2 className="h-3.5 w-3.5 opacity-80" aria-hidden />
+              View full certificate
+            </span>
+          </button>
         </div>
-
       </div>
     </div>
   )
@@ -260,44 +235,47 @@ function CertCard({ cert }: { cert: Cert }) {
 // ─── Section ───────────────────────────────────────────────────────────────────
 
 export default function CertificationsSection() {
+  const [lightboxId, setLightboxId] = useState<string | null>(null)
+  const closeLightbox = useCallback(() => setLightboxId(null), [])
+  const lightboxCert = lightboxId ? CERTS.find((c) => c.id === lightboxId) : undefined
+
   return (
-    <section className="relative bg-[#FDFCF0] py-20 px-4 overflow-hidden">
-      {/* Subtle green dot grid */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{ backgroundImage: 'radial-gradient(circle, #2E7D32 1px, transparent 1px)', backgroundSize: '24px 24px' }}
-      />
+    <>
+      <section className="relative bg-background py-20 px-4 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(circle, #2E7D32 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+        />
 
-      <div className="relative z-10 max-w-5xl mx-auto">
-
-        {/* Heading */}
-        <ScrollReveal animation="up">
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <div className="h-px w-10 bg-gradient-green" />
-              <span className="text-gradient-green font-semibold text-xs uppercase tracking-[0.22em]">Verified Quality</span>
-              <div className="h-px w-10 bg-gradient-green" />
+        <div className="relative z-10 max-w-5xl mx-auto">
+          <ScrollReveal animation="up">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <div className="h-px w-10 bg-gradient-green" />
+                <span className="text-gradient-green font-semibold text-xs uppercase tracking-[0.22em]">Verified Quality</span>
+                <div className="h-px w-10 bg-gradient-green" />
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary mb-3">
+                Standards We Never Compromise On
+              </h2>
+              <p className="text-text-secondary text-sm max-w-md mx-auto leading-relaxed">
+                Hover a card to flip it, then tap the certificate to view it full size—no fine print, just proof.
+              </p>
+              <div className="w-14 h-[3px] bg-gradient-green rounded-full mx-auto mt-4" />
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary mb-3">
-              Standards We Never Compromise On
-            </h2>
-            <p className="text-text-secondary text-sm max-w-sm mx-auto">
-              Hover each card to view the official certificate.
-            </p>
-            <div className="w-14 h-[3px] bg-gradient-green rounded-full mx-auto mt-4" />
+          </ScrollReveal>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {CERTS.map((cert, i) => (
+              <ScrollReveal key={cert.id} animation="up" delay={i * 100}>
+                <CertCard cert={cert} onOpenCert={(c) => setLightboxId(c.id)} />
+              </ScrollReveal>
+            ))}
           </div>
-        </ScrollReveal>
-
-        {/* 3 cards in one row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {CERTS.map((cert, i) => (
-            <ScrollReveal key={cert.id} animation="up" delay={i * 100}>
-              <CertCard cert={cert} />
-            </ScrollReveal>
-          ))}
         </div>
+      </section>
 
-      </div>
-    </section>
+      {lightboxCert ? <CertificateLightbox cert={lightboxCert} onClose={closeLightbox} /> : null}
+    </>
   )
 }

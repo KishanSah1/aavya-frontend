@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Leaf, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { useProducts } from '@/lib/queries/useProducts'
@@ -73,7 +74,8 @@ function ProductCard({ product }: { product: Product }) {
   const { name, weight, price, imageSrc, href, badge, description, highlights } = product
 
   return (
-    <article className="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col group border border-surface">
+    <article className="relative bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col group border border-surface cursor-pointer">
+      <Link href={href} className="absolute inset-0 z-[1]" aria-label={`View ${name} ${weight}`} />
       {/* Image */}
       <div className="relative aspect-square bg-surface overflow-hidden">
         <Image
@@ -127,7 +129,7 @@ function ProductCard({ product }: { product: Product }) {
         )}
 
         {/* Actions */}
-        <div className="mt-auto flex flex-col gap-3 pt-2">
+        <div className="relative z-10 mt-auto flex flex-col gap-3 pt-2">
           <CartControl product={product} />
           <Button
             href={href}

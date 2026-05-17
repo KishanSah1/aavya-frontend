@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
 import type { Product } from '@/lib/types'
@@ -11,7 +12,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { name, weight, price, imageSrc, href, badge } = product
 
   return (
-    <article className="bg-surface rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col group">
+    <article className="relative bg-surface rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col group cursor-pointer">
+      <Link href={href} className="absolute inset-0 z-[1]" aria-label={`View ${name} ${weight}`} />
       {/* Image */}
       <div className="relative aspect-square bg-background overflow-hidden">
         <Image
@@ -42,14 +44,16 @@ export default function ProductCard({ product }: ProductCardProps) {
           ₹{price.toLocaleString('en-IN')}
         </p>
 
-        <Button
-          href={href}
-          size="sm"
-          className="mt-2"
-          rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-        >
-          Know More
-        </Button>
+        <div className="relative z-10">
+          <Button
+            href={href}
+            size="sm"
+            className="mt-2"
+            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+          >
+            Know More
+          </Button>
+        </div>
       </div>
     </article>
   )
