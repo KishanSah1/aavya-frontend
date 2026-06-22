@@ -2,11 +2,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Button from '@/app/components/ui/Button'
 
-// ─── Social SVG icons ─────────────────────────────────────────────────────────
+// ─── Social icons ─────────────────────────────────────────────────────────────
 
 function IconFacebook() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden>
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden>
       <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
     </svg>
   )
@@ -14,7 +14,7 @@ function IconFacebook() {
 
 function IconInstagram() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" aria-hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16" aria-hidden>
       <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
       <circle cx="12" cy="12" r="4" />
       <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
@@ -24,7 +24,7 @@ function IconInstagram() {
 
 function IconYoutube() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden>
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden>
       <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
       <polygon fill="white" points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" />
     </svg>
@@ -33,7 +33,7 @@ function IconYoutube() {
 
 function IconX() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden>
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden>
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
   )
@@ -41,139 +41,201 @@ function IconX() {
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-const NAV_COLUMNS = [
-  {
-    heading: 'Explore',
-    links: [
-      { label: 'Our Roots', href: '/' },
-      { label: 'Products', href: '/products' },
-      { label: 'The Journey', href: '/journey' },
-      { label: 'Reach Us', href: '/about' },
-      { label: 'Blogs', href: '/blogs' },
-    ],
-  },
-  {
-    heading: 'Policies',
-    links: [
-      { label: 'Privacy Policy', href: '/privacy' },
-      { label: 'Shipping Policy', href: '/shipping' },
-      { label: 'Refund Policy', href: '/returns' },
-      { label: 'Terms of Services', href: '/terms' },
-    ],
-  },
+const EXPLORE_LINKS = [
+  { label: 'Our Roots', href: '/' },
+  { label: 'Products', href: '/products' },
+  { label: 'The Journey', href: '/journey' },
+  { label: 'Reach Us', href: '/about' },
+  { label: 'Our Stories', href: '/seller' },
+]
+
+const POLICY_LINKS = [
+  { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Shipping Policy', href: '/shipping' },
+  { label: 'Refund Policy', href: '/returns' },
+  { label: 'Terms of Service', href: '/terms' },
 ]
 
 const SOCIAL_LINKS = [
-  { Icon: IconFacebook,  href: '#', label: 'Facebook'  },
+  { Icon: IconFacebook, href: '#', label: 'Facebook' },
   { Icon: IconInstagram, href: '#', label: 'Instagram' },
-  { Icon: IconYoutube,   href: '#', label: 'YouTube'   },
-  { Icon: IconX,         href: '#', label: 'X'         },
+  { Icon: IconYoutube, href: '#', label: 'YouTube' },
+  { Icon: IconX, href: '#', label: 'X' },
 ]
+
+const SKY_TEXT_SHADOW = '[text-shadow:0_1px_8px_rgba(255,255,255,0.85)]'
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function FooterLinkColumn({
+  heading,
+  links,
+  compact = false,
+}: {
+  heading: string
+  links: { label: string; href: string }[]
+  compact?: boolean
+}) {
+  return (
+    <div>
+      <h4
+        className={`mb-1.5 font-bold uppercase tracking-[0.16em] text-secondary ${compact ? 'text-[10px]' : 'text-xs'}`}
+      >
+        {heading}
+      </h4>
+      <ul className={`flex flex-col ${compact ? 'gap-0.5' : 'gap-1.5'}`}>
+        {links.map((link) => (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              className={`group inline-flex items-center gap-1 font-medium text-text-primary/90 transition-colors hover:text-secondary ${compact ? 'text-[11px]' : 'text-xs sm:text-sm'} ${compact ? SKY_TEXT_SHADOW : ''}`}
+            >
+              <span
+                className="h-1 w-1 shrink-0 rounded-full bg-primary transition-transform group-hover:scale-125"
+                aria-hidden
+              />
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function FooterMarketing({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={compact ? 'text-center' : ''}>
+      <p
+        className={`text-gradient-green font-semibold uppercase tracking-[0.2em] ${compact ? 'text-xs' : 'text-[10px] sm:text-xs'} ${SKY_TEXT_SHADOW}`}
+      >
+        Rooted in Rajasthan
+      </p>
+      <h2
+        className={`mt-0.5 font-bold leading-snug text-text-primary ${compact ? 'text-lg' : 'text-sm sm:text-base md:text-lg'} ${SKY_TEXT_SHADOW}`}
+      >
+        Pure ghee. Honest farms.{' '}
+        <span className="text-gradient-green">Your family deserves both.</span>
+      </h2>
+      <p
+        className={`mt-1 leading-snug text-text-secondary/85 ${compact ? 'mx-auto max-w-md text-sm' : 'max-w-sm text-[11px] sm:text-xs'} ${SKY_TEXT_SHADOW}`}
+      >
+        A2 Bilona ghee crafted with patience — from trusted Rajasthani farmers straight to your kitchen.
+      </p>
+      <div className={`mt-2 flex flex-wrap gap-2 ${compact ? 'justify-center' : ''}`}>
+        <Button href="/products" size="sm" rightIcon={<span aria-hidden>→</span>}>
+          Shop Ghee
+        </Button>
+        <Button href="/about" variant="secondary" size="sm">
+          Reach Us
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function FooterNav({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={`grid grid-cols-2 ${compact ? 'gap-6' : 'gap-3 sm:gap-4'}`}>
+      <FooterLinkColumn heading="Explore" links={EXPLORE_LINKS} compact={compact} />
+      <FooterLinkColumn heading="Policies" links={POLICY_LINKS} compact={compact} />
+    </div>
+  )
+}
+
+function FooterSocialIcons({ variant = 'sky' }: { variant?: 'sky' | 'bar' }) {
+  const isBar = variant === 'bar'
+  return (
+    <div className="flex items-center gap-1.5 sm:gap-2">
+      {SOCIAL_LINKS.map(({ Icon, href, label }) => (
+        <Link
+          key={label}
+          href={href}
+          aria-label={label}
+          className={
+            isBar
+              ? 'flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-200 hover:scale-105 hover:bg-primary sm:h-8 sm:w-8'
+              : 'flex h-8 w-8 items-center justify-center rounded-full border border-secondary/20 bg-primary/15 text-secondary shadow-sm transition-all duration-200 hover:scale-105 hover:border-secondary hover:bg-secondary hover:text-white'
+          }
+        >
+          <Icon />
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+function FooterBottomBar({ className = '' }: { className?: string }) {
+  return (
+    <div
+      className={`bg-gradient-to-r from-[#1a4a35]/90 via-[#0f3325]/92 to-[#1a4a35]/90 px-4 py-2.5 backdrop-blur-[2px] sm:py-3 ${className}`}
+    >
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <p className="text-center text-[11px] font-semibold tracking-tight text-white sm:text-left sm:text-xs">
+          © {new Date().getFullYear()} Aavya Foods · Purity in Every Drop
+        </p>
+        <p className="hidden text-center text-[10px] text-white/80 sm:block sm:text-xs">
+          <span className="font-semibold text-white">FSSAI registered</span>
+          {' · '}
+          Farm-direct delivery across India
+        </p>
+        <FooterSocialIcons variant="bar" />
+      </div>
+      <p className="mt-1.5 text-center text-[10px] text-white/75 sm:hidden">
+        <span className="font-semibold text-white/90">FSSAI registered</span>
+        {' · '}
+        Farm-direct delivery across India
+      </p>
+      <p className="mt-1 text-center text-[10px] text-white/65 sm:mt-1.5 sm:text-[11px]">
+        Registered in Rajasthan, India · Farmer network across local farms
+      </p>
+    </div>
+  )
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+/**
+ * Footer layout zones (1635×450 art):
+ * - Left 0–28%: logo + camels — keep clear
+ * - Center sky 28–58% × 6–32%: marketing + CTAs
+ * - Right sky 58–82% × 8–30%: nav columns
+ * - Bottom strip: copyright + trust + social
+ */
 export default function Footer() {
   return (
-    <footer className="relative overflow-hidden">
-      {/* Background — exact 1640×459 aspect ratio, never crops */}
-      <Image
-        src="/aavya/footer-bg.png"
-        alt=""
-        width={1640}
-        height={459}
-        className="w-full h-auto block"
-        aria-hidden
-        priority
-      />
+    <footer className="relative overflow-hidden bg-[#ede9c8]">
+      {/* Footer illustration — unobstructed on mobile */}
+      <div className="relative">
+        <Image
+          src="/aavya/footer.png"
+          alt="Aavya Foods — Purity in Every Drop"
+          width={1635}
+          height={450}
+          className="block h-auto w-full"
+          priority
+        />
 
-      {/* Content — absolutely overlaid on the image */}
-      <div className="absolute inset-0 flex flex-col justify-between">
-
-        {/* ── Main grid — positioned in the light upper area ── */}
-        <div className="max-w-7xl mx-auto w-full px-5 sm:px-8 md:px-12 pt-[5%] sm:pt-[6%] pb-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-x-10 md:gap-y-8 lg:gap-x-14">
-
-            {/* Brand */}
-            <div className="sm:col-span-2 md:col-span-1 max-w-sm md:max-w-none">
-              <Image
-                src="/aavya/logo.jpeg"
-                alt="Aavya Foods"
-                width={120}
-                height={46}
-                className="object-contain mb-4"
-                style={{ height: '42px', width: 'auto' }}
-              />
-              <p className="text-text-primary text-sm leading-relaxed mb-4 max-w-[22rem]">
-                Rooted in Rajasthan, Aavya Foods brings pure dairy directly from trusted farmers to your home.
-              </p>
-              <p className="text-text-secondary text-sm leading-relaxed">
-                <span className="font-medium text-text-primary">Registered in:</span> Rajasthan, India
-              </p>
-              <p className="text-text-secondary text-sm leading-relaxed mt-2">
-                <span className="font-medium text-text-primary">Farmer network:</span> Local farms across Rajasthan
-              </p>
-            </div>
-
-            {/* Link columns */}
-            {NAV_COLUMNS.map((col) => (
-              <div key={col.heading}>
-                <h4 className="text-text-primary font-bold text-xs uppercase tracking-[0.14em] mb-4">
-                  {col.heading}
-                </h4>
-                <ul className="flex flex-col gap-2.5">
-                  {col.links.map((link) => (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        className="text-sm font-medium text-secondary hover:text-secondary-light hover:underline underline-offset-4 transition-colors inline-flex items-start gap-2"
-                      >
-                        <span className="text-primary mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                        <span>{link.label}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-
-            {/* Need Help */}
-            <div>
-              <h4 className="text-text-primary font-bold text-xs uppercase tracking-[0.14em] mb-4">
-                Need Help?
-              </h4>
-              <Button href="/about" size="md" rightIcon={<span aria-hidden className="text-base leading-none">→</span>}>
-                Contact Us
-              </Button>
-              <div className="flex flex-wrap gap-2.5 mt-5">
-                {SOCIAL_LINKS.map(({ Icon, href, label }) => (
-                  <Link
-                    key={label}
-                    href={href}
-                    aria-label={label}
-                    className="w-10 h-10 rounded-full bg-secondary/15 hover:bg-secondary text-secondary hover:text-white flex items-center justify-center transition-all duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
-                  >
-                    <Icon />
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
+        {/* Sky-band overlay (sm+) — stays within top ~32% of art */}
+        <div className="absolute left-[28%] right-[4%] top-[6%] hidden h-[28%] overflow-hidden sm:grid sm:grid-cols-2 sm:items-start sm:gap-3 md:grid-cols-[1.1fr_0.9fr] md:gap-4 lg:gap-6">
+          <FooterMarketing />
+          <FooterNav compact />
         </div>
 
-        {/* ── Bottom bar — on the dark green area of the image (high contrast for readability) ── */}
-        <div className="pb-5 pt-4 px-5 sm:px-8 text-center max-w-3xl mx-auto">
-          <p className="text-white text-sm sm:text-base font-semibold tracking-tight drop-shadow-sm">
-            © {new Date().getFullYear()} Aavya Foods. All rights reserved.
-          </p>
-          <p className="text-white/90 text-sm leading-relaxed mt-2.5">
-            Registered office: Rajasthan, India
-            <span className="hidden sm:inline"> · </span>
-            <span className="block sm:inline mt-1 sm:mt-0">
-              Farmer network: Local farms across Rajasthan
-            </span>
-          </p>
+        {/* Bottom bar overlaid on dune band (sm+) */}
+        <FooterBottomBar className="absolute inset-x-0 bottom-0 hidden sm:block" />
+      </div>
+
+      {/* Mobile content panel — below art, no overlay */}
+      <div className="border-t border-secondary/10 bg-[#f5f0dc] px-5 py-6 sm:hidden">
+        <FooterMarketing compact />
+        <div className="mt-10 border-t border-secondary/10 pt-8">
+          <FooterNav />
         </div>
       </div>
+
+      {/* Mobile bottom bar */}
+      <FooterBottomBar className="sm:hidden" />
     </footer>
   )
 }

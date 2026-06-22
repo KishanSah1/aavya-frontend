@@ -112,7 +112,7 @@ function StoryCard({ post, onClick }: { post: Post; onClick: () => void }) {
 function ConversionBanner() {
   return (
     <div className="relative rounded-3xl overflow-hidden my-4">
-      <Image src="/aavya/hero-bg3.png" alt="Aavya Ghee" fill sizes="100vw" className="object-cover object-center" />
+      <Image src="/aavya/hero-banner-1.png" alt="Aavya Ghee" fill sizes="100vw" className="object-cover object-center" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#4E342E]/92 via-[#4E342E]/70 to-transparent" />
       <div className="relative z-10 px-8 py-12 md:px-14 md:py-14 max-w-lg">
         <div className="flex items-center gap-2 mb-4">

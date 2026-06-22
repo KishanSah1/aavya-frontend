@@ -6,12 +6,12 @@ import Link from 'next/link'
 
 const slides = [
   {
-    src: '/aavya/hero-bg3.png',
+    src: '/aavya/hero-banner-1.png',
     alt: 'Pure Desi Cow Ghee — Aavya Foods',
     href: null,
   },
   {
-    src: '/aavya/shop-now-banner.webp',
+    src: '/aavya/hero-banner-2.png',
     alt: 'Eat Light This Summer — A2 Gir Cow Ghee & Natural Jaggery',
     href: '/products',
   },
@@ -79,8 +79,8 @@ export default function HeroSection() {
             <Image
               src={slide.src}
               alt={slide.alt}
-              width={1440}
-              height={720}
+              width={3180}
+              height={1142}
               priority={i === 0}
               className={`w-full h-auto block ${i === current ? 'animate-ken-burns' : ''}`}
               key={i === current ? progressKey : undefined}
