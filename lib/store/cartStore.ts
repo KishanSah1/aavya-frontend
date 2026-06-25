@@ -10,6 +10,7 @@ interface CartState {
   _hasHydrated: boolean
   setHasHydrated: (value: boolean) => void
   addItem: (product: Product) => void
+  setItemQty: (product: Product, qty: number) => void
   removeItem: (id: string) => void
   updateQty: (id: string, qty: number) => void
   clearCart: () => void
@@ -42,6 +43,43 @@ export const useCartStore = create<CartState>()(
           method: 'POST',
           body: JSON.stringify({ productId: product.id, quantity: 1 }),
         }).catch(() => {})
+      },
+
+      setItemQty: (product, qty) => {
+        const existing = get().items.find((i) => i.id === product.id)
+
+        if (qty <= 0) {
+          set((state) => ({ items: state.items.filter((i) => i.id !== product.id) }))
+          if (existing) {
+            fetchWithAuth(`${API}/api/v1/cart/items/${product.id}`, { method: 'DELETE' }).catch(
+              () => {}
+            )
+          }
+          return
+        }
+
+        set((state) => {
+          if (existing) {
+            return {
+              items: state.items.map((i) =>
+                i.id === product.id ? { ...i, quantity: qty } : i
+              ),
+            }
+          }
+          return { items: [...state.items, { ...product, quantity: qty }] }
+        })
+
+        if (existing) {
+          fetchWithAuth(`${API}/api/v1/cart/items/${product.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ quantity: qty }),
+          }).catch(() => {})
+        } else {
+          fetchWithAuth(`${API}/api/v1/cart/items`, {
+            method: 'POST',
+            body: JSON.stringify({ productId: product.id, quantity: qty }),
+          }).catch(() => {})
+        }
       },
 
       removeItem: (id) => {

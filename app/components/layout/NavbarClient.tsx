@@ -19,7 +19,9 @@ export default function NavbarClient({ links }: NavbarClientProps) {
   const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
-  const totalItems = useCartStore((s) => s.totalItems())
+  const totalItems = useCartStore((s) =>
+    s.items.reduce((sum, i) => sum + i.quantity, 0)
+  )
   const hasHydrated = useCartStore((s) => s._hasHydrated)
 
   useEffect(() => { setMounted(true) }, [])

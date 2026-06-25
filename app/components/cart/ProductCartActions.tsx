@@ -71,28 +71,20 @@ const ProductCartActions = forwardRef<ProductCartActionsHandle, Props>(function 
   ref
 ) {
   const router = useRouter()
-  const hasHydrated = useCartStore((s) => s._hasHydrated)
-  const addItem = useCartStore((s) => s.addItem)
+  const setItemQty = useCartStore((s) => s.setItemQty)
   const updateQty = useCartStore((s) => s.updateQty)
-  const cartItem = useCartStore((s) =>
-    hasHydrated ? s.items.find((i) => i.id === product.id) : undefined
-  )
+  const cartItem = useCartStore((s) => s.items.find((i) => i.id === product.id))
 
   const [desiredQty, setDesiredQty] = useState(1)
   const [justAdded, setJustAdded] = useState(false)
   const addedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const addToCart = useCallback(() => {
-    if (cartItem) {
-      updateQty(product.id, cartItem.quantity)
-      return
-    }
-    addItem(product)
-    if (desiredQty > 1) updateQty(product.id, desiredQty)
+    setItemQty(product, desiredQty)
     setJustAdded(true)
     if (addedTimerRef.current) clearTimeout(addedTimerRef.current)
     addedTimerRef.current = setTimeout(() => setJustAdded(false), 2000)
-  }, [cartItem, addItem, updateQty, product, desiredQty])
+  }, [setItemQty, product, desiredQty])
 
   useImperativeHandle(ref, () => ({ addToCart }), [addToCart])
 
