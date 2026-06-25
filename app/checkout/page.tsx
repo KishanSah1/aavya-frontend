@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/lib/store/cartStore'
+import { fetchWithAuth } from '@/lib/fetchWithAuth'
 import Button from '@/app/components/ui/Button'
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -17,7 +18,46 @@ interface Address {
   pincode: string
 }
 
+interface RazorpayResponse {
+  razorpay_order_id: string
+  razorpay_payment_id: string
+  razorpay_signature: string
+}
+
+interface RazorpayFailedResponse {
+  error?: { description?: string }
+}
+
+declare global {
+  interface Window {
+    Razorpay: new (options: Record<string, unknown>) => {
+      open: () => void
+      on: (event: string, handler: (response: RazorpayFailedResponse) => void) => void
+    }
+  }
+}
+
 const EMPTY: Address = { name: '', phone: '', line1: '', line2: '', city: '', state: '', pincode: '' }
+
+const PHONE_RE = /^[6-9]\d{9}$/
+const PINCODE_RE = /^\d{6}$/
+
+function loadRazorpayScript(): Promise<void> {
+  if (window.Razorpay) return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('Failed to load Razorpay'))
+    document.body.appendChild(script)
+  })
+}
+
+function validateAddress(address: Address): string | null {
+  if (!PHONE_RE.test(address.phone)) return 'Enter a valid 10-digit mobile number starting with 6–9.'
+  if (!PINCODE_RE.test(address.pincode)) return 'Enter a valid 6-digit pincode.'
+  return null
+}
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -29,10 +69,11 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (items.length === 0) {
-    router.replace('/cart')
-    return null
-  }
+  useEffect(() => {
+    if (items.length === 0) router.replace('/cart')
+  }, [items.length, router])
+
+  if (items.length === 0) return null
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setAddress((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -41,12 +82,18 @@ export default function CheckoutPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+
+    const validationError = validateAddress(address)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setLoading(true)
 
     try {
-      const res = await fetch(`${API}/api/v1/orders/initiate`, {
+      const res = await fetchWithAuth(`${API}/api/v1/orders/initiate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
           shippingAddress: address,
@@ -56,25 +103,23 @@ export default function CheckoutPage() {
       const json = await res.json()
       if (!res.ok) {
         setError(json.error?.message ?? 'Something went wrong')
+        setLoading(false)
         return
       }
 
-      const { razorpayOrderId, amount } = json.data
+      const { razorpayOrderId, amount, currency = 'INR' } = json.data
 
-      // load Razorpay checkout script
-      const script = document.createElement('script')
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-      document.body.appendChild(script)
+      await loadRazorpayScript()
 
-      script.onload = () => {
-        const rzp = new (window as any).Razorpay({
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount,
-          currency: 'INR',
-          order_id: razorpayOrderId,
-          name: 'Aavya Foods',
-          description: 'A2 Bilona Ghee',
-          handler: async (response: any) => {
+      const rzp = new window.Razorpay({
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount,
+        currency,
+        order_id: razorpayOrderId,
+        name: 'Aavya Foods',
+        description: 'A2 Bilona Ghee',
+        handler: async (response: RazorpayResponse) => {
+          try {
             const confirmRes = await fetch(`${API}/api/v1/orders/confirm`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -84,19 +129,43 @@ export default function CheckoutPage() {
                 razorpaySignature: response.razorpay_signature,
               }),
             })
+
             if (confirmRes.ok) {
               clearCart()
               router.push('/checkout/success')
+            } else {
+              const confirmJson = await confirmRes.json()
+              setError(
+                confirmJson.error?.message ??
+                  `Payment received but order confirmation failed. Contact support with payment ID: ${response.razorpay_payment_id}`
+              )
             }
+          } catch {
+            setError(
+              `Payment received but order confirmation failed. Contact support with payment ID: ${response.razorpay_payment_id}`
+            )
+          } finally {
+            setLoading(false)
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(false)
+            setError('Payment cancelled.')
           },
-          prefill: { name: address.name, contact: address.phone },
-          theme: { color: '#D4A853' },
-        })
-        rzp.open()
-      }
+        },
+        prefill: { name: address.name, contact: address.phone },
+        theme: { color: '#D4A853' },
+      })
+
+      rzp.on('payment.failed', (response) => {
+        setLoading(false)
+        setError(response.error?.description ?? 'Payment failed. Please try again.')
+      })
+
+      rzp.open()
     } catch {
       setError('Network error. Please try again.')
-    } finally {
       setLoading(false)
     }
   }

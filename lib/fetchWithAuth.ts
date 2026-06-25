@@ -3,23 +3,22 @@ import { useAuthStore } from './store/authStore'
 const API = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+  const isFormData = options.body instanceof FormData
+  const hasBody = options.body != null
+
+  const withHeaders = (extra: Record<string, string> = {}): RequestInit => ({
+    ...options,
+    headers: {
+      ...(hasBody && !isFormData ? { 'Content-Type': 'application/json' } : {}),
+      ...options.headers,
+      ...extra,
+    },
+  })
+
   const store = useAuthStore.getState()
-  if (!store.accessToken) return fetch(url, options)
+  if (!store.accessToken) return fetch(url, withHeaders())
 
-  const withBearer = (token: string): RequestInit => {
-    const isFormData = options.body instanceof FormData
-    const hasBody = options.body != null
-    return {
-      ...options,
-      headers: {
-        ...(hasBody && !isFormData ? { 'Content-Type': 'application/json' } : {}),
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  }
-
-  const res = await fetch(url, withBearer(store.accessToken))
+  const res = await fetch(url, withHeaders({ Authorization: `Bearer ${store.accessToken}` }))
   if (res.status !== 401 || !store.refreshToken) return res
 
   const refreshRes = await fetch(`${API}/api/v1/auth/refresh`, {
@@ -36,5 +35,5 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
   const { data } = await refreshRes.json()
   useAuthStore.getState().updateAccessToken(data.accessToken)
 
-  return fetch(url, withBearer(data.accessToken))
+  return fetch(url, withHeaders({ Authorization: `Bearer ${data.accessToken}` }))
 }

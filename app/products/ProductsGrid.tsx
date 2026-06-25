@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, Leaf, Minus, Plus, ShoppingCart } from 'lucide-react'
+import { ArrowRight, Leaf } from 'lucide-react'
 import { useProducts } from '@/lib/queries/useProducts'
-import { useCartStore } from '@/lib/store/cartStore'
+import ProductCartActions from '@/app/components/cart/ProductCartActions'
 import Button from '@/app/components/ui/Button'
 import type { Product } from '@/lib/types'
 
@@ -25,48 +25,6 @@ function SkeletonCard() {
         <div className="h-12 bg-surface rounded-full mt-4" />
       </div>
     </div>
-  )
-}
-
-function CartControl({ product }: { product: Product }) {
-  const items = useCartStore((s) => s.items)
-  const addItem = useCartStore((s) => s.addItem)
-  const updateQty = useCartStore((s) => s.updateQty)
-  const cartItem = items.find((i) => i.id === product.id)
-
-  if (cartItem) {
-    return (
-      <div className="flex items-center justify-between bg-secondary/5 border border-secondary/20 rounded-full px-2 py-1.5">
-        <button
-          onClick={() => updateQty(product.id, cartItem.quantity - 1)}
-          className="w-9 h-9 rounded-full bg-secondary/10 hover:bg-secondary/20 text-secondary flex items-center justify-center transition-colors"
-          aria-label="Decrease quantity"
-        >
-          <Minus className="w-4 h-4" />
-        </button>
-        <span className="font-bold text-text-primary text-base w-10 text-center tabular-nums">
-          {cartItem.quantity}
-        </span>
-        <button
-          onClick={() => updateQty(product.id, cartItem.quantity + 1)}
-          className="w-9 h-9 rounded-full bg-secondary text-white hover:bg-secondary/90 flex items-center justify-center transition-colors"
-          aria-label="Increase quantity"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
-      </div>
-    )
-  }
-
-  return (
-    <Button
-      variant="primary"
-      fullWidth
-      onClick={() => addItem(product)}
-      leftIcon={<ShoppingCart className="w-4 h-4" />}
-    >
-      Add to Cart
-    </Button>
   )
 }
 
@@ -130,7 +88,7 @@ function ProductCard({ product }: { product: Product }) {
 
         {/* Actions */}
         <div className="relative z-10 mt-auto flex flex-col gap-3 pt-2">
-          <CartControl product={product} />
+          <ProductCartActions product={product} variant="grid" />
           <Button
             href={href}
             variant="secondary"

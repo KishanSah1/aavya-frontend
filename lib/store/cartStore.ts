@@ -7,6 +7,8 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL
 
 interface CartState {
   items: CartItem[]
+  _hasHydrated: boolean
+  setHasHydrated: (value: boolean) => void
   addItem: (product: Product) => void
   removeItem: (id: string) => void
   updateQty: (id: string, qty: number) => void
@@ -21,6 +23,8 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      _hasHydrated: false,
+      setHasHydrated: (value) => set({ _hasHydrated: value }),
 
       addItem: (product) => {
         set((state) => {
@@ -91,6 +95,12 @@ export const useCartStore = create<CartState>()(
       totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
       totalPrice: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
     }),
-    { name: 'aavya-cart' }
+    {
+      name: 'aavya-cart',
+      partialize: (state) => ({ items: state.items }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true)
+      },
+    }
   )
 )

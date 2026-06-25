@@ -1,7 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useId, useState } from 'react'
 import {
   ChevronDown,
@@ -10,21 +9,17 @@ import {
   Flame,
   FlaskConical,
   Leaf,
-  Minus,
   MilkOff,
   Moon,
   Package,
-  Plus,
   RefreshCw,
   RotateCcw,
   Share2,
   ShieldCheck,
-  ShoppingCart,
   Truck,
 } from 'lucide-react'
 import type { ProductDetail } from '@/lib/types'
-import { useCartStore } from '@/lib/store/cartStore'
-import Button from '@/app/components/ui/Button'
+import ProductCartActions from '@/app/components/cart/ProductCartActions'
 
 // ─── Static data ─────────────────────────────────────────────────────────────
 
@@ -122,46 +117,12 @@ function discountPct(price: number, mrp: number) {
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function QtyButton({
-  icon: Icon,
-  onClick,
-  label,
-  filled,
-}: {
-  icon: typeof Minus
-  onClick: () => void
-  label: string
-  filled?: boolean
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className={[
-        'w-11 h-11 rounded-full flex items-center justify-center transition-colors',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary',
-        filled
-          ? 'bg-secondary text-white hover:bg-secondary/90'
-          : 'bg-secondary/10 hover:bg-secondary/20 text-secondary',
-      ].join(' ')}
-    >
-      <Icon className="w-4 h-4" />
-    </button>
-  )
-}
-
-// ─── Main component ──────────────────────────────────────────────────────────
-
-// ─── FAQ accordion ────────────────────────────────────────────────────────────
-
 function ProductFAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (
     <section className="mt-20 pt-14 border-t border-surface">
       <div className="max-w-2xl mx-auto">
-        {/* Heading */}
         <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Leaf className="w-4 h-4 text-primary" />
@@ -176,7 +137,6 @@ function ProductFAQ() {
           <div className="w-12 h-1 bg-primary rounded-full mx-auto mt-4" />
         </div>
 
-        {/* Accordion */}
         <div className="flex flex-col gap-2.5">
           {PRODUCT_FAQS.map((faq, i) => {
             const isOpen = openIndex === i
@@ -200,7 +160,6 @@ function ProductFAQ() {
                   />
                 </button>
 
-                {/* Animated answer */}
                 <div
                   className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
                 >
@@ -222,34 +181,14 @@ function ProductFAQ() {
 // ─── Main component ──────────────────────────────────────────────────────────
 
 export default function ProductDetailClient({ product }: { product: ProductDetail }) {
-  const router = useRouter()
   const galleryId = useId()
 
-  const addItem = useCartStore((s) => s.addItem)
-  const updateQty = useCartStore((s) => s.updateQty)
-  const cartItem = useCartStore((s) => s.items.find((i) => i.id === product.id))
-
   const [active, setActive] = useState(0)
-  const [qty, setQty] = useState(() => cartItem?.quantity ?? 1)
   const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared'>('idle')
 
   const { images, name, weight, price, mrp, description, highlights, detailParagraphs, badge } = product
   const onSale = mrp != null && mrp > price
   const title = `${name} — ${weight}`
-
-  const addToCartWithQty = useCallback(() => {
-    if (cartItem) {
-      updateQty(product.id, qty)
-    } else {
-      addItem(product)
-      if (qty > 1) updateQty(product.id, qty)
-    }
-  }, [cartItem, addItem, updateQty, product, qty])
-
-  const handleBuyNow = useCallback(() => {
-    addToCartWithQty()
-    router.push('/cart')
-  }, [addToCartWithQty, router])
 
   const handleShare = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : ''
@@ -409,62 +348,7 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
               <span className="text-xs text-text-secondary self-end pb-0.5">incl. of all taxes</span>
             </div>
 
-            {/* Qty stepper */}
-            <div>
-              <p className="text-sm font-semibold text-text-primary mb-3" id="qty-label">Quantity</p>
-              <div
-                className="inline-flex items-center gap-1.5 bg-secondary/5 border border-secondary/20 rounded-full px-2 py-2"
-                role="group"
-                aria-labelledby="qty-label"
-              >
-                <QtyButton
-                  icon={Minus}
-                  onClick={() => {
-                    const current = cartItem?.quantity ?? qty
-                    const next = Math.max(1, current - 1)
-                    setQty(next)
-                    if (cartItem) updateQty(product.id, next)
-                  }}
-                  label="Decrease quantity"
-                />
-                <span className="font-bold text-text-primary text-lg w-12 text-center tabular-nums">
-                  {cartItem?.quantity ?? qty}
-                </span>
-                <QtyButton
-                  icon={Plus}
-                  onClick={() => {
-                    const current = cartItem?.quantity ?? qty
-                    const next = Math.min(99, current + 1)
-                    setQty(next)
-                    if (cartItem) updateQty(product.id, next)
-                  }}
-                  label="Increase quantity"
-                  filled
-                />
-              </div>
-            </div>
-
-            {/* CTA buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                variant="outline"
-                size="lg"
-                fullWidth
-                onClick={addToCartWithQty}
-                leftIcon={<ShoppingCart className="w-4 h-4" />}
-              >
-                Add to Cart
-              </Button>
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                onClick={handleBuyNow}
-                rightIcon={<ChevronRight className="w-4 h-4" />}
-              >
-                Buy Now
-              </Button>
-            </div>
+            <ProductCartActions product={product} variant="detail" />
             <p className="text-xs text-text-secondary/60 -mt-2">
               UPI · Cards · Netbanking · Cash on Delivery
             </p>

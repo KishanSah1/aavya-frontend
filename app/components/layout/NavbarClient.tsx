@@ -20,6 +20,7 @@ export default function NavbarClient({ links }: NavbarClientProps) {
   const [mounted, setMounted] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const totalItems = useCartStore((s) => s.totalItems())
+  const hasHydrated = useCartStore((s) => s._hasHydrated)
 
   useEffect(() => { setMounted(true) }, [])
   const pathname = usePathname()
@@ -155,7 +156,7 @@ export default function NavbarClient({ links }: NavbarClientProps) {
             className="relative flex items-center gap-2 bg-gradient-to-r from-secondary to-secondary-light text-white font-semibold px-4 py-2 rounded-full hover:opacity-90 hover:shadow-md hover:shadow-secondary/25 transition-all duration-200 ml-1"
           >
             <ShoppingCart className="w-4 h-4" />
-            {mounted && totalItems > 0 && (
+            {mounted && hasHydrated && totalItems > 0 && (
               <span className="absolute -top-2 -right-2 bg-primary text-text-primary text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-sm">
                 {totalItems}
               </span>

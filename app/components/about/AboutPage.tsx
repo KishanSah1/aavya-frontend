@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { Leaf } from 'lucide-react'
 import Button from '@/app/components/ui/Button'
 import ConversationSection from './ConversationSection'
+import ContactHeroCard from './ContactHeroCard'
+import { CONTACT } from '@/lib/contact'
 
 export default function AboutPage() {
   return (
@@ -11,14 +13,15 @@ export default function AboutPage() {
       {/* ── Section 1: Hero image ── */}
       <section className="relative bg-[#FDFCF0] overflow-hidden">
         <Image
-          src="/aavya/about-hero-bg.png"
-          alt="Aavya Foods — Pure Rajasthani ghee, tradition and craft"
-          width={1920}
-          height={960}
+          src="/aavya/about-us.png"
+          alt="Aavya Foods — man holding a jar of pure A2 Bilona ghee"
+          width={3180}
+          height={1142}
           className="w-full h-auto block"
           priority
           sizes="100vw"
         />
+        <ContactHeroCard />
         {/* Fade bottom into next section */}
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#FDFCF0] to-transparent pointer-events-none" />
       </section>
@@ -88,10 +91,10 @@ export default function AboutPage() {
                 Explore our ghee
               </Button>
               <Link
-                href="mailto:hello@aavyafoods.com"
+                href={`mailto:${CONTACT.email}`}
                 className="text-sm font-semibold text-secondary hover:text-secondary-light underline-offset-4 hover:underline transition-colors"
               >
-                hello@aavyafoods.com
+                {CONTACT.email}
               </Link>
             </div>
           </div>

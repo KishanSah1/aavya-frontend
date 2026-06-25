@@ -297,7 +297,7 @@ export default function ProductsOfferQuiz() {
     >
       {/* Background image */}
       <Image
-        src="/aavya/farm-story.png"
+        src="/aavya/quiz-section.png"
         alt=""
         fill
         sizes="100vw"
