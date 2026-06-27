@@ -22,11 +22,6 @@ const FAQS: FAQItem[] = [
       'Store it in a cool, dry place away from direct sunlight. No refrigeration needed — our ghee stays fresh at room temperature for up to 12 months. Always use a dry spoon to scoop.',
   },
   {
-    question: 'Do you offer cash on delivery?',
-    answer:
-      'Yes, we offer Cash on Delivery across most pin codes in India. You can select COD at checkout. For remote areas, prepaid orders are preferred to ensure timely delivery.',
-  },
-  {
     question: 'How long does delivery take?',
     answer:
       'Orders are typically delivered within 4–6 business days across India. Same-day delivery is available in Mumbai, Pune, and Delhi NCR for orders placed before 12 PM.',
@@ -34,12 +29,7 @@ const FAQS: FAQItem[] = [
   {
     question: 'What is the Bilona method?',
     answer:
-      'The Bilona method is an ancient Vedic process where curd made from A2 cow milk is hand-churned to extract butter, which is then slow-cooked on a low flame into golden, aromatic ghee. It preserves all natural nutrients and gives ghee its distinctive flavour.',
-  },
-  {
-    question: 'Do you ship outside India?',
-    answer:
-      'Currently we ship only within India. International shipping is something we are actively working on — sign up for our newsletter to be notified when it launches.',
+      'The Bilona method is an ancient Vedic process where curd made from desi cow milk is hand-churned to extract butter, which is then slow-cooked on a low flame into golden, aromatic ghee. It preserves all natural nutrients and gives ghee its distinctive flavour.',
   },
 ]
 

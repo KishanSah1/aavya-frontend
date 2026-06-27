@@ -33,7 +33,7 @@ const BILONA_STEPS = [
   {
     icon: MilkOff,
     step: '01',
-    title: 'A2 Milk',
+    title: 'Desi Cow Milk',
     desc: 'Sourced fresh from indigenous desi cows raised on natural pasture and feed.',
   },
   {

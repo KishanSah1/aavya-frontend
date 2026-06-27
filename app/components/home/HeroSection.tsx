@@ -3,17 +3,23 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Caveat } from 'next/font/google'
+
+const heroCtaFont = Caveat({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+})
 
 const slides = [
   {
     src: '/aavya/hero-banner-1.png',
     alt: 'Pure Desi Cow Ghee — Aavya Foods',
-    href: null,
+    cta: false,
   },
   {
-    src: '/aavya/hero-banner-2.png',
-    alt: 'Eat Light This Summer — A2 Gir Cow Ghee & Natural Jaggery',
-    href: '/products',
+    src: '/aavya/hero-banner-2-without-button.png',
+    alt: 'Because the ones you love deserve the Purest Plate — Aavya Foods',
+    cta: true,
   },
 ]
 
@@ -74,28 +80,41 @@ export default function HeroSection() {
         className="flex transition-transform duration-700 ease-in-out"
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
-        {slides.map((slide, i) => {
-          const img = (
-            <Image
-              src={slide.src}
-              alt={slide.alt}
-              width={3180}
-              height={1142}
-              priority={i === 0}
-              className={`w-full h-auto block ${i === current ? 'animate-ken-burns' : ''}`}
-              key={i === current ? progressKey : undefined}
-            />
-          )
-          return (
+        {slides.map((slide, i) => (
             <div key={slide.src} className="min-w-full relative overflow-hidden">
-              {slide.href ? (
-                <Link href={slide.href} className="block cursor-pointer">
-                  {img}
-                </Link>
-              ) : img}
+              <Image
+                src={slide.src}
+                alt={slide.alt}
+                width={3180}
+                height={1142}
+                priority={i === 0}
+                className={`w-full h-auto block ${i === current ? 'animate-ken-burns' : ''}`}
+                key={i === current ? progressKey : undefined}
+              />
+              {slide.cta && (
+                <div className="absolute bottom-[14%] left-1/2 -translate-x-1/2 z-10">
+                  <Link
+                    href="/products"
+                    className={`${heroCtaFont.className} group inline-flex items-center gap-2 text-[#C4622A] hover:text-[#A8521F] transition-colors duration-300 [text-shadow:0_1px_12px_rgba(255,255,255,0.6)]`}
+                  >
+                    <span className="relative text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide">
+                      Explore Our Products
+                      <span
+                        className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 bg-gradient-to-r from-[#E6B325] to-[#C4622A] transition-transform duration-300 group-hover:scale-x-100"
+                        aria-hidden
+                      />
+                    </span>
+                    <span
+                      className="text-2xl sm:text-3xl transition-transform duration-300 group-hover:translate-x-1"
+                      aria-hidden
+                    >
+                      →
+                    </span>
+                  </Link>
+                </div>
+              )}
             </div>
-          )
-        })}
+          ))}
       </div>
 
       {/* Left arrow */}

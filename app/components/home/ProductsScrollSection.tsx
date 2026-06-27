@@ -39,7 +39,7 @@ export default function ProductsScrollSection() {
         <div className="flex items-end justify-between mb-8">
           <div>
             <p className="text-sm font-medium uppercase tracking-widest text-gradient-green mb-1">
-              A2 bilona ghee
+              Pure bilona ghee
             </p>
             <h2 className="text-3xl font-bold text-text-primary">
               Two jar sizes

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import Button from '@/app/components/ui/Button'
+import { SITE_NAV_LINKS, POLICY_LINKS } from '@/lib/siteNav'
 
 // ─── Social icons ─────────────────────────────────────────────────────────────
 
@@ -39,23 +40,6 @@ function IconX() {
   )
 }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-const EXPLORE_LINKS = [
-  { label: 'Our Roots', href: '/' },
-  { label: 'Products', href: '/products' },
-  { label: 'The Journey', href: '/journey' },
-  { label: 'Reach Us', href: '/about' },
-  { label: 'Our Stories', href: '/seller' },
-]
-
-const POLICY_LINKS = [
-  { label: 'Privacy Policy', href: '/privacy' },
-  { label: 'Shipping Policy', href: '/shipping' },
-  { label: 'Refund Policy', href: '/returns' },
-  { label: 'Terms of Service', href: '/terms' },
-]
-
 const SOCIAL_LINKS = [
   { Icon: IconFacebook, href: '#', label: 'Facebook' },
   { Icon: IconInstagram, href: '#', label: 'Instagram' },
@@ -64,6 +48,8 @@ const SOCIAL_LINKS = [
 ]
 
 const SKY_TEXT_SHADOW = '[text-shadow:0_1px_8px_rgba(255,255,255,0.85)]'
+const FOOTER_LINK_FOCUS =
+  'rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-secondary focus-visible:outline-offset-2'
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -79,19 +65,19 @@ function FooterLinkColumn({
   return (
     <div>
       <h4
-        className={`mb-1.5 font-bold uppercase tracking-[0.16em] text-secondary ${compact ? 'text-[10px]' : 'text-xs'}`}
+        className={`mb-1.5 font-bold uppercase tracking-[0.16em] text-secondary ${compact ? 'text-[11px] md:text-xs' : 'text-xs md:text-sm'} ${compact ? SKY_TEXT_SHADOW : ''}`}
       >
         {heading}
       </h4>
-      <ul className={`flex flex-col ${compact ? 'gap-0.5' : 'gap-1.5'}`}>
+      <ul className={`flex flex-col ${compact ? 'gap-1 md:gap-1.5' : 'gap-2'}`}>
         {links.map((link) => (
           <li key={link.href}>
             <Link
               href={link.href}
-              className={`group inline-flex items-center gap-1 font-medium text-text-primary/90 transition-colors hover:text-secondary ${compact ? 'text-[11px]' : 'text-xs sm:text-sm'} ${compact ? SKY_TEXT_SHADOW : ''}`}
+              className={`group inline-flex items-center gap-1.5 font-medium text-text-primary/90 transition-colors hover:text-secondary ${compact ? 'text-xs md:text-sm' : 'text-sm md:text-base'} ${compact ? SKY_TEXT_SHADOW : ''} ${FOOTER_LINK_FOCUS}`}
             >
               <span
-                className="h-1 w-1 shrink-0 rounded-full bg-primary transition-transform group-hover:scale-125"
+                className={`shrink-0 rounded-full bg-primary transition-transform group-hover:scale-125 ${compact ? 'h-1 w-1' : 'h-1.5 w-1.5'}`}
                 aria-hidden
               />
               {link.label}
@@ -103,7 +89,13 @@ function FooterLinkColumn({
   )
 }
 
-function FooterMarketing({ compact = false }: { compact?: boolean }) {
+function FooterMarketing({
+  compact = false,
+  showCTAs = true,
+}: {
+  compact?: boolean
+  showCTAs?: boolean
+}) {
   return (
     <div className={compact ? 'text-center' : ''}>
       <p
@@ -112,32 +104,34 @@ function FooterMarketing({ compact = false }: { compact?: boolean }) {
         Rooted in Rajasthan
       </p>
       <h2
-        className={`mt-0.5 font-bold leading-snug text-text-primary ${compact ? 'text-lg' : 'text-sm sm:text-base md:text-lg'} ${SKY_TEXT_SHADOW}`}
+        className={`font-bold text-text-primary ${compact ? 'mt-2 text-lg leading-relaxed' : 'mt-1.5 text-sm leading-relaxed sm:mt-2 sm:text-base md:text-lg md:leading-relaxed'} ${SKY_TEXT_SHADOW}`}
       >
         Pure ghee. Honest farms.{' '}
         <span className="text-gradient-green">Your family deserves both.</span>
       </h2>
       <p
-        className={`mt-1 leading-snug text-text-secondary/85 ${compact ? 'mx-auto max-w-md text-sm' : 'max-w-sm text-[11px] sm:text-xs'} ${SKY_TEXT_SHADOW}`}
+        className={`text-text-secondary/85 ${compact ? 'mx-auto mt-3 max-w-md text-sm leading-relaxed' : 'mt-2 max-w-sm text-[11px] leading-relaxed sm:mt-2.5 sm:text-xs md:mt-3'} ${SKY_TEXT_SHADOW}`}
       >
         A2 Bilona ghee crafted with patience — from trusted Rajasthani farmers straight to your kitchen.
       </p>
-      <div className={`mt-2 flex flex-wrap gap-2 ${compact ? 'justify-center' : ''}`}>
-        <Button href="/products" size="sm" rightIcon={<span aria-hidden>→</span>}>
-          Shop Ghee
-        </Button>
-        <Button href="/about" variant="secondary" size="sm">
-          Reach Us
-        </Button>
-      </div>
+      {showCTAs && (
+        <div className={`mt-2 flex flex-wrap gap-2 ${compact ? 'justify-center' : ''}`}>
+          <Button href="/products" size="sm" rightIcon={<span aria-hidden>→</span>}>
+            Shop Ghee
+          </Button>
+          <Button href="/about" variant="secondary" size="sm">
+            Reach Us
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
 
 function FooterNav({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={`grid grid-cols-2 ${compact ? 'gap-6' : 'gap-3 sm:gap-4'}`}>
-      <FooterLinkColumn heading="Explore" links={EXPLORE_LINKS} compact={compact} />
+    <div className={`grid grid-cols-2 ${compact ? 'ml-2 gap-6 md:ml-3' : 'gap-3 sm:gap-4'}`}>
+      <FooterLinkColumn heading="Explore" links={SITE_NAV_LINKS} compact={compact} />
       <FooterLinkColumn heading="Policies" links={POLICY_LINKS} compact={compact} />
     </div>
   )
@@ -154,8 +148,8 @@ function FooterSocialIcons({ variant = 'sky' }: { variant?: 'sky' | 'bar' }) {
           aria-label={label}
           className={
             isBar
-              ? 'flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-200 hover:scale-105 hover:bg-primary sm:h-8 sm:w-8'
-              : 'flex h-8 w-8 items-center justify-center rounded-full border border-secondary/20 bg-primary/15 text-secondary shadow-sm transition-all duration-200 hover:scale-105 hover:border-secondary hover:bg-secondary hover:text-white'
+              ? 'flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white transition-all duration-200 hover:scale-105 hover:bg-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 sm:h-8 sm:w-8'
+              : 'flex h-8 w-8 items-center justify-center rounded-full border border-secondary/20 bg-primary/15 text-secondary shadow-sm transition-all duration-200 hover:scale-105 hover:border-secondary hover:bg-secondary hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-secondary focus-visible:outline-offset-2'
           }
         >
           <Icon />
@@ -171,22 +165,22 @@ function FooterBottomBar({ className = '' }: { className?: string }) {
       className={`bg-gradient-to-r from-[#1a4a35]/90 via-[#0f3325]/92 to-[#1a4a35]/90 px-4 py-2.5 backdrop-blur-[2px] sm:py-3 ${className}`}
     >
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <p className="text-center text-[11px] font-semibold tracking-tight text-white sm:text-left sm:text-xs">
+        <p className="text-center text-xs font-semibold tracking-tight text-white sm:text-left sm:text-sm">
           © {new Date().getFullYear()} Aavya Foods · Purity in Every Drop
         </p>
-        <p className="hidden text-center text-[10px] text-white/80 sm:block sm:text-xs">
+        <p className="hidden text-center text-xs text-white/80 sm:block sm:text-sm">
           <span className="font-semibold text-white">FSSAI registered</span>
           {' · '}
           Farm-direct delivery across India
         </p>
         <FooterSocialIcons variant="bar" />
       </div>
-      <p className="mt-1.5 text-center text-[10px] text-white/75 sm:hidden">
+      <p className="mt-1.5 text-center text-xs text-white/75 sm:hidden">
         <span className="font-semibold text-white/90">FSSAI registered</span>
         {' · '}
         Farm-direct delivery across India
       </p>
-      <p className="mt-1 text-center text-[10px] text-white/65 sm:mt-1.5 sm:text-[11px]">
+      <p className="mt-1 text-center text-xs text-white/65 sm:mt-1.5 sm:text-sm">
         Registered in Rajasthan, India · Farmer network across local farms
       </p>
     </div>
@@ -198,8 +192,8 @@ function FooterBottomBar({ className = '' }: { className?: string }) {
 /**
  * Footer layout zones (1635×450 art):
  * - Left 0–28%: logo + camels — keep clear
- * - Center sky 28–58% × 6–32%: marketing + CTAs
- * - Right sky 58–82% × 8–30%: nav columns
+ * - Center sky 28–58% × 6–38%: marketing copy
+ * - Right sky 58–82% × 6–38%: nav columns
  * - Bottom strip: copyright + trust + social
  */
 export default function Footer() {
@@ -208,19 +202,20 @@ export default function Footer() {
       {/* Footer illustration — unobstructed on mobile */}
       <div className="relative">
         <Image
-          src="/aavya/footer.png"
+          src="/aavya/footer-logo-fix.png"
           alt="Aavya Foods — Purity in Every Drop"
           width={1635}
           height={450}
           className="block h-auto w-full"
           priority
+          unoptimized
         />
 
-        {/* Sky-band overlay (sm+) — stays within top ~32% of art */}
-        <div className="absolute left-[28%] right-[4%] top-[6%] hidden h-[28%] overflow-hidden sm:grid sm:grid-cols-2 sm:items-start sm:gap-3 md:grid-cols-[1.1fr_0.9fr] md:gap-4 lg:gap-6">
-          <FooterMarketing />
+        {/* Sky-band overlay (sm+) — stays within top ~38% of art */}
+        <div className="absolute left-[28%] right-[4%] top-[6%] hidden h-[34%] overflow-hidden sm:grid sm:grid-cols-2 sm:items-start sm:gap-3 md:grid-cols-[1fr_1fr] md:gap-4 lg:gap-6">
+          <FooterMarketing showCTAs={false} />
           <FooterNav compact />
-        </div>
+          </div>
 
         {/* Bottom bar overlaid on dune band (sm+) */}
         <FooterBottomBar className="absolute inset-x-0 bottom-0 hidden sm:block" />

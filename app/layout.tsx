@@ -14,9 +14,9 @@ const primaryFont = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Aavya Foods | Pure A2 Bilona Ghee',
+  title: 'Aavya Foods | Pure Bilona Ghee',
   description:
-    'Experience the richness of traditionally crafted A2 Bilona Ghee, made from the milk of indigenous Desi cows. Farm fresh, 100% pure, and full of natural goodness.',
+    'Experience the richness of traditionally crafted Bilona Ghee, made from the milk of indigenous Desi cows. Farm fresh, 100% pure, and full of natural goodness.',
 }
 
 export default function RootLayout({

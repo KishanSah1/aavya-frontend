@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!product) return { title: 'Product | Aavya Foods' }
   const title = `${product.name} ${product.weight} | Aavya Foods`
   const description =
-    product.description ?? `Pure A2 Bilona Cow Ghee — ${product.weight}. Hand-churned tradition, farm-fresh purity.`
+    product.description ?? `Pure Bilona Cow Ghee — ${product.weight}. Hand-churned tradition, farm-fresh purity.`
   return { title, description, openGraph: { title, description } }
 }
 

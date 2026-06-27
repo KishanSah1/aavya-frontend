@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ArrowRight, Leaf } from 'lucide-react'
 import { useProducts } from '@/lib/queries/useProducts'
 import ProductCartActions from '@/app/components/cart/ProductCartActions'
@@ -104,7 +106,25 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 export default function ProductsGrid() {
+  const searchParams = useSearchParams()
+  const query = searchParams.get('q')?.trim().toLowerCase() ?? ''
   const { data: products, isLoading, isError, refetch } = useProducts()
+
+  const filteredProducts = useMemo(() => {
+    if (!products) return []
+    if (!query) return products
+    return products.filter((p) => {
+      const haystack = [
+        p.name,
+        p.weight,
+        p.description ?? '',
+        ...(p.highlights ?? []),
+      ]
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(query)
+    })
+  }, [products, query])
 
   if (isError) {
     return (
@@ -117,11 +137,24 @@ export default function ProductsGrid() {
     )
   }
 
+  if (!isLoading && query && filteredProducts.length === 0) {
+    return (
+      <div className="text-center py-24">
+        <p className="text-text-secondary mb-2">
+          No products match &ldquo;{searchParams.get('q')}&rdquo;.
+        </p>
+        <Button href="/products" variant="ghost">
+          View all products
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
       {isLoading
         ? Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)
-        : products?.map((product) => <ProductCard key={product.id} product={product} />)}
+        : filteredProducts.map((product) => <ProductCard key={product.id} product={product} />)}
     </div>
   )
 }

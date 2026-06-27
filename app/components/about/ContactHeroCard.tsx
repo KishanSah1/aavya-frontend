@@ -76,7 +76,7 @@ function ContactRow({ icon, label, value, href, external, ariaLabel }: ContactRo
 export default function ContactHeroCard() {
   return (
     <aside
-      className="absolute right-3 top-[6%] z-10 w-[calc(100%-1.5rem)] max-w-[220px] sm:right-6 sm:max-w-[260px] md:right-10 md:max-w-[280px] lg:right-14"
+      className="absolute top-[40%] -translate-y-1/2 z-10 w-[calc(100%-1.5rem)] max-w-[220px] right-6 sm:right-10 sm:max-w-[260px] md:right-16 md:max-w-[280px] lg:right-24 xl:right-28"
       aria-label="Contact information"
     >
       <div className="rounded-2xl border border-white/60 bg-white/75 p-3.5 shadow-lg backdrop-blur-md sm:p-4">
@@ -84,7 +84,6 @@ export default function ContactHeroCard() {
           <p className="text-gradient-green text-[10px] font-semibold uppercase tracking-[0.18em] sm:text-xs">
             Reach Us
           </p>
-          <h2 className="mt-0.5 text-sm font-bold text-text-primary sm:text-base">Contact Us</h2>
           <p className="mt-1 text-[11px] leading-snug text-text-secondary/80 sm:text-xs">
             We&apos;d love to hear from you
           </p>

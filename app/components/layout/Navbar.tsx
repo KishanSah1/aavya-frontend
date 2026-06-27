@@ -1,14 +1,6 @@
 import NavbarClient from './NavbarClient'
-import type { NavLink } from '@/lib/types'
-
-const NAV_LINKS: NavLink[] = [
-  { label: 'Our Roots', href: '/' },
-  { label: 'Products', href: '/products' },
-  { label: 'The Journey', href: '/journey' },
-  { label: 'Reach Us', href: '/about' },
-  { label: 'Our Stories', href: '/seller' },
-]
+import { SITE_NAV_LINKS } from '@/lib/siteNav'
 
 export default function Navbar() {
-  return <NavbarClient links={NAV_LINKS} />
+  return <NavbarClient links={SITE_NAV_LINKS} />
 }

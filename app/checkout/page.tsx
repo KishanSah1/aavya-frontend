@@ -117,7 +117,7 @@ export default function CheckoutPage() {
         currency,
         order_id: razorpayOrderId,
         name: 'Aavya Foods',
-        description: 'A2 Bilona Ghee',
+        description: 'Pure Bilona Ghee',
         handler: async (response: RazorpayResponse) => {
           try {
             const confirmRes = await fetch(`${API}/api/v1/orders/confirm`, {

@@ -50,11 +50,11 @@ const CERTS: Cert[] = [
   },
   {
     id: 'a2',
-    name: 'A2 Milk',
+    name: 'Desi Cow Milk',
     sub: 'Certified',
-    tagline: 'Genuine Gir cow A2 beta-casein',
+    tagline: 'Genuine Gir cow desi milk',
     icon: Leaf,
-    trustBlurb: 'A2 β-casein certification confirms the milk matches what we promise on the label, from indigenous Gir cows.',
+    trustBlurb: 'Desi cow milk certification confirms the milk matches what we promise on the label, from indigenous Gir cows.',
   },
 ]
 
@@ -174,7 +174,7 @@ function CertCard({ cert, onOpenCert }: { cert: Cert; onOpenCert: (c: Cert) => v
     >
       <div className="flip-card-inner rounded-2xl">
         {/* ── FRONT ── */}
-        <div className="flip-card-face flip-card-front flex flex-col items-center justify-between bg-[#FDFCF0] border border-primary/20 rounded-2xl p-6 overflow-hidden">
+        <div className="flip-card-face flip-card-front flex flex-col items-center justify-center gap-8 bg-[#FDFCF0] border border-primary/20 rounded-2xl p-6 overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary/0 via-primary to-primary/0 rounded-t-2xl" />
 
           <div className="relative w-28 h-28 flex items-center justify-center">
@@ -194,12 +194,6 @@ function CertCard({ cert, onOpenCert }: { cert: Cert; onOpenCert: (c: Cert) => v
             <p className="text-primary text-[10px] font-bold uppercase tracking-[0.22em] mb-0.5">{cert.sub}</p>
             <h3 className="text-text-primary font-extrabold text-2xl leading-tight">{cert.name}</h3>
             <p className="text-text-secondary/60 text-xs mt-2 leading-relaxed">{cert.tagline}</p>
-          </div>
-
-          <div className="flex items-center gap-2 text-secondary/35 text-[10px]">
-            <span className="w-4 h-px bg-secondary/25" />
-            hover to flip · then open certificate
-            <span className="w-4 h-px bg-secondary/25" />
           </div>
 
           <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-secondary/0 via-secondary/40 to-secondary/0 rounded-b-2xl" />
@@ -258,10 +252,12 @@ export default function CertificationsSection() {
               <h2 className="text-3xl sm:text-4xl font-extrabold text-text-primary mb-3">
                 Standards We Never Compromise On
               </h2>
-              <p className="text-text-secondary text-sm max-w-md mx-auto leading-relaxed">
-                Hover a card to flip it, then tap the certificate to view it full size—no fine print, just proof.
-              </p>
               <div className="w-14 h-[3px] bg-gradient-green rounded-full mx-auto mt-4" />
+              <p className="mt-5 flex items-center justify-center gap-2 text-[10px] text-secondary/40">
+                <span className="w-4 h-px bg-secondary/25" />
+                hover to flip · then open certificate
+                <span className="w-4 h-px bg-secondary/25" />
+              </p>
             </div>
           </ScrollReveal>
 

@@ -165,7 +165,7 @@ export default function ProductsPage() {
             <div>
               <label className="text-xs font-semibold text-text-secondary mb-1 block">Name *</label>
               <input value={form.name} onChange={(e) => { set('name', e.target.value); if (!editing) set('slug', slugify(e.target.value)) }}
-                placeholder="A2 Bilona Cow Ghee"
+                placeholder="Bilona Cow Ghee"
                 className="w-full border border-surface rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-secondary/30" />
             </div>
             {/* Slug */}

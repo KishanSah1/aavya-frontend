@@ -13,12 +13,13 @@ export default function AboutPage() {
       {/* ── Section 1: Hero image ── */}
       <section className="relative bg-[#FDFCF0] overflow-hidden">
         <Image
-          src="/aavya/about-us.png"
-          alt="Aavya Foods — man holding a jar of pure A2 Bilona ghee"
+          src="/aavya/about-us-letters.png"
+          alt="Aavya Foods — man holding a jar of pure Bilona ghee"
           width={3180}
           height={1142}
           className="w-full h-auto block"
           priority
+          unoptimized
           sizes="100vw"
         />
         <ContactHeroCard />
@@ -32,33 +33,28 @@ export default function AboutPage() {
         <div className="absolute bottom-0 -left-20 w-72 h-72 rounded-full bg-secondary/6 blur-3xl pointer-events-none" />
 
         <div className="relative max-w-4xl mx-auto px-4 md:px-8">
-          <header className="relative text-center pt-14 md:pt-20 pb-6 md:pb-10 overflow-hidden">
+          <header className="relative text-center pt-10 md:pt-14 pb-4 md:pb-6 overflow-hidden">
             <p
               className="pointer-events-none select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[clamp(4rem,18vw,11rem)] font-extrabold leading-none text-text-primary/[0.06] whitespace-nowrap"
               aria-hidden
             >
               our story
             </p>
-            <p className="relative flex items-center justify-center gap-2 text-secondary font-semibold text-xs uppercase tracking-[0.2em] mb-4">
-              <Leaf className="w-4 h-4 text-primary" aria-hidden />
-              Aavya Foods
-            </p>
-            <h1 className="relative text-3xl sm:text-4xl md:text-5xl font-extrabold text-text-primary tracking-tight leading-[1.15] mb-6">
+            <h1 className="relative text-3xl sm:text-4xl md:text-5xl font-extrabold text-text-primary tracking-tight leading-[1.15] mb-3">
               From Rajasthan, With Purity
             </h1>
-            <div className="relative w-16 h-1 bg-gradient-green rounded-full mx-auto mb-10" />
-            <p className="relative text-lg md:text-xl text-text-secondary leading-relaxed max-w-2xl mx-auto">
+            <p className="relative text-lg md:text-xl text-text-secondary leading-snug max-w-2xl mx-auto mb-4">
               Our story begins in <strong className="font-semibold text-text-primary">Rajasthan</strong>, where things
               are still done the way they&apos;re meant to be.
             </p>
           </header>
 
-          <div className="relative max-w-none text-center pb-12 md:pb-16 border-b border-primary/10">
-            <p className="text-text-secondary text-base md:text-lg leading-relaxed mb-6 max-w-2xl mx-auto">
+          <div className="relative max-w-none text-center pb-8 md:pb-10 border-b border-primary/10">
+            <p className="text-text-secondary text-base md:text-lg leading-snug mb-4 max-w-2xl mx-auto">
               We work closely with farmers who&apos;ve been doing this for years, sometimes for generations. For them,
               it&apos;s not just work, it is routine, care, and a way of life.
             </p>
-            <p className="text-text-secondary text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
+            <p className="text-text-secondary text-base md:text-lg leading-snug max-w-2xl mx-auto">
               And honestly, that&apos;s where everything starts.
             </p>
           </div>

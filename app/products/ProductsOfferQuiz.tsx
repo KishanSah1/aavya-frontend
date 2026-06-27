@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useCallback, useId, useMemo, useState } from 'react'
+import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Check, CheckCircle2, Copy, Leaf, Sparkles, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -79,7 +79,7 @@ function scoreCopy(score: number): { headline: string; body: string } {
   }
   if (score >= 3) return {
     headline: 'You know your ghee.',
-    body: 'You tick most of the boxes of a quality A2 ghee. Try Aavya and taste what the bilona method truly feels like.',
+    body: 'You tick most of the boxes of quality pure ghee. Try Aavya and taste what the bilona method truly feels like.',
   }
   return {
     headline: 'Your ghee might be letting you down.',
@@ -91,14 +91,12 @@ function scoreCopy(score: number): { headline: string; body: string } {
 
 function RadioBlock({
   index,
-  name,
   question,
   options,
   value,
   onChange,
 }: {
   index: number
-  name: string
   question: string
   options: QuizOption[]
   value: string | undefined
@@ -108,32 +106,42 @@ function RadioBlock({
 
   return (
     <fieldset className="min-w-0">
-      <legend className="text-sm font-semibold text-text-primary leading-snug mb-2.5">
+      <legend
+        id={`${groupId}-legend`}
+        className="text-sm font-semibold text-text-primary leading-snug mb-2.5"
+      >
         <span className="text-primary mr-1.5 font-bold">{index + 1}.</span>
         {question}
       </legend>
 
-      <div className="flex flex-col gap-2">
+      <div
+        role="radiogroup"
+        aria-labelledby={`${groupId}-legend`}
+        className="flex flex-col gap-2 [overflow-anchor:none]"
+      >
         {options.map((opt) => {
-          const inputId = `${groupId}-${opt.value}`
           const checked = value === opt.value
 
           return (
-            <label
+            <button
               key={opt.value}
-              htmlFor={inputId}
+              type="button"
+              role="radio"
+              aria-checked={checked}
+              onClick={() => onChange(opt.value)}
+              onFocus={(e) => e.currentTarget.focus({ preventScroll: true })}
               className={cn(
-                'flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 transition-all duration-150',
-                'focus-within:ring-2 focus-within:ring-primary/50 focus-within:ring-offset-1 focus-within:ring-offset-transparent',
+                'flex w-full cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left transition-colors duration-150',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50',
                 checked
-                  ? 'border-primary/50 bg-primary/10 shadow-sm'
+                  ? 'border-primary/50 bg-primary/10'
                   : 'border-gray-200 bg-white/70 hover:border-primary/30 hover:bg-primary/[0.04]',
               )}
             >
               {/* Letter bubble */}
               <span
                 className={cn(
-                  'shrink-0 w-6 h-6 rounded-full border text-[11px] font-bold flex items-center justify-center transition-all',
+                  'shrink-0 w-6 h-6 rounded-full border text-[11px] font-bold flex items-center justify-center transition-colors',
                   checked
                     ? 'bg-primary border-primary text-text-primary'
                     : 'border-gray-300 text-gray-400 bg-transparent',
@@ -143,27 +151,19 @@ function RadioBlock({
                 {opt.value.toUpperCase()}
               </span>
 
-              <input
-                id={inputId}
-                type="radio"
-                name={name}
-                value={opt.value}
-                checked={checked}
-                onChange={() => onChange(opt.value)}
-                className="sr-only"
-              />
-
               <span className={cn(
                 'text-sm leading-relaxed flex-1',
-                checked ? 'text-text-primary font-medium' : 'text-text-secondary',
+                checked ? 'text-text-primary' : 'text-text-secondary',
               )}>
                 {opt.label}
               </span>
 
-              {checked && (
+              {checked ? (
                 <Check className="shrink-0 w-4 h-4 text-primary" strokeWidth={2.5} aria-hidden />
+              ) : (
+                <span className="shrink-0 w-4 h-4" aria-hidden />
               )}
-            </label>
+            </button>
           )
         })}
       </div>
@@ -270,6 +270,8 @@ function SuccessScreen({
 export default function ProductsOfferQuiz() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [phase, setPhase] = useState<'quiz' | 'success'>('quiz')
+  const questionsRef = useRef<HTMLDivElement>(null)
+  const scrollLockRef = useRef<{ windowY: number; containerTop: number } | null>(null)
 
   const allAnswered = useMemo(
     () => QUESTIONS.every((q) => Boolean(answers[q.id])),
@@ -277,8 +279,25 @@ export default function ProductsOfferQuiz() {
   )
 
   const setAnswer = useCallback((id: string, v: string) => {
+    scrollLockRef.current = {
+      windowY: window.scrollY,
+      containerTop: questionsRef.current?.scrollTop ?? 0,
+    }
     setAnswers((prev) => ({ ...prev, [id]: v }))
   }, [])
+
+  useLayoutEffect(() => {
+    const lock = scrollLockRef.current
+    if (!lock) return
+    scrollLockRef.current = null
+
+    if (questionsRef.current) {
+      questionsRef.current.scrollTop = lock.containerTop
+    }
+    if (Math.abs(window.scrollY - lock.windowY) > 1) {
+      window.scrollTo({ top: lock.windowY, left: 0, behavior: 'auto' })
+    }
+  }, [answers])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -292,7 +311,7 @@ export default function ProductsOfferQuiz() {
 
   return (
     <section
-      className="relative isolate overflow-hidden"
+      className="relative isolate overflow-hidden bg-[#FFFBF0]"
       aria-labelledby="quiz-heading"
     >
       {/* Background image */}
@@ -301,16 +320,16 @@ export default function ProductsOfferQuiz() {
         alt=""
         fill
         sizes="100vw"
-        className="object-cover object-center scale-105"
+        className="object-cover object-center"
         aria-hidden
       />
 
-      {/* Overlay */}
+      {/* Warm honey-gold wash — light but lets the photo show through */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(160deg, rgba(10,28,12,0.70) 0%, rgba(15,45,18,0.78) 50%, rgba(8,25,10,0.84) 100%)',
+            'linear-gradient(155deg, rgba(255, 252, 245, 0.78) 0%, rgba(255, 241, 190, 0.65) 42%, rgba(255, 247, 225, 0.75) 100%)',
         }}
         aria-hidden
       />
@@ -320,30 +339,31 @@ export default function ProductsOfferQuiz() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Leaf className="w-4 h-4 text-primary" aria-hidden />
-            <span className="text-primary font-semibold text-xs uppercase tracking-widest">
+            <span className="text-secondary font-semibold text-xs uppercase tracking-widest">
               Member perk
             </span>
             <Leaf className="w-4 h-4 text-primary" aria-hidden />
           </div>
           <h2
             id="quiz-heading"
-            className="text-3xl md:text-[2rem] font-extrabold text-white leading-tight"
+            className="text-3xl md:text-[2rem] font-extrabold text-secondary leading-tight"
           >
             Your Exclusive Offer Awaits
           </h2>
-          <p className="mt-2.5 text-sm text-white/70 max-w-sm mx-auto leading-relaxed">
+          <p className="mt-2.5 text-sm text-text-secondary max-w-sm mx-auto leading-relaxed">
             Complete a short questionnaire to unlock a special saving on your first Aavya order.
           </p>
           <div className="w-10 h-0.5 bg-primary rounded-full mx-auto mt-4 opacity-60" />
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-black/8 bg-[#FDFCF0]/97 backdrop-blur-md shadow-2xl p-6 sm:p-8">
+        <div className="rounded-2xl border border-secondary/10 bg-white/95 backdrop-blur-sm shadow-xl shadow-secondary/5 p-6 sm:p-8">
           {phase === 'quiz' ? (
             <form onSubmit={handleSubmit}>
               {/* Questions */}
               <div
-                className="space-y-6 max-h-[30rem] overflow-y-auto overscroll-contain pr-1 -mr-1 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent]"
+                ref={questionsRef}
+                className="space-y-6 max-h-[30rem] overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [overflow-anchor:none] pr-1 -mr-1 [scrollbar-width:thin] [scrollbar-color:rgba(0,0,0,0.12)_transparent]"
                 role="region"
                 aria-label="Ghee quality questionnaire"
               >
@@ -351,7 +371,6 @@ export default function ProductsOfferQuiz() {
                   <RadioBlock
                     key={q.id}
                     index={i}
-                    name={q.id}
                     question={q.question}
                     options={q.options}
                     value={answers[q.id]}
@@ -365,20 +384,21 @@ export default function ProductsOfferQuiz() {
                 {/* Progress dots */}
                 <div className="flex justify-center gap-2 mb-5" aria-hidden>
                   {QUESTIONS.map((q) => (
-                    <span
-                      key={q.id}
-                      className={cn(
-                        'h-1.5 rounded-full transition-all duration-300',
-                        answers[q.id] ? 'w-5 bg-primary' : 'w-1.5 bg-gray-300',
-                      )}
-                    />
+                    <span key={q.id} className="flex h-1.5 w-5 items-center justify-center">
+                      <span
+                        className={cn(
+                          'h-1.5 rounded-full transition-all duration-300',
+                          answers[q.id] ? 'w-5 bg-primary' : 'w-1.5 bg-gray-300',
+                        )}
+                      />
+                    </span>
                   ))}
                 </div>
 
                 <button
                   type="submit"
                   disabled={!allAnswered}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-green text-white font-bold py-3.5 rounded-xl hover:opacity-95 active:scale-[0.99] transition-all shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-35 disabled:cursor-not-allowed disabled:shadow-none motion-reduce:active:scale-100"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-green text-white font-bold py-3.5 rounded-xl hover:opacity-95 active:scale-[0.99] transition-[opacity,transform] shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-35 disabled:cursor-not-allowed motion-reduce:active:scale-100"
                 >
                   <Sparkles className="w-4 h-4 shrink-0" aria-hidden />
                   Unlock Your Special Saving

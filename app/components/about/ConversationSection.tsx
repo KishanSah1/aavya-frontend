@@ -256,7 +256,7 @@ export default function ConversationSection() {
 
         <div className="border-t border-stone-100 px-6 py-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
           {[
-            { color: 'bg-secondary',       label: 'Farm-sourced A2 milk' },
+            { color: 'bg-secondary',       label: 'Farm-sourced desi milk' },
             { color: 'bg-primary',         label: 'Traditional Bilona method' },
             { color: 'bg-secondary-light', label: 'Direct farmer partnership' },
           ].map(({ color, label }) => (

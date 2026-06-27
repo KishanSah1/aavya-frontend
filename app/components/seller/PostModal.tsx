@@ -317,7 +317,7 @@ export default function PostModal({ post, onClose, onPrev, onNext }: PostModalPr
                 </div>
                 <div>
                   <p className="text-text-primary text-xs font-semibold leading-tight">Try the ghee from this story</p>
-                  <p className="text-text-secondary/70 text-[11px]">Pure A2 Bilona Ghee — Shop Now</p>
+                  <p className="text-text-secondary/70 text-[11px]">Pure Bilona Ghee — Shop Now</p>
                 </div>
               </div>
               <ArrowRight className="w-4 h-4 text-primary shrink-0 group-hover:translate-x-0.5 transition-transform" />

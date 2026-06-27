@@ -1,15 +1,17 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { Leaf } from 'lucide-react'
 import ProductsGrid from './ProductsGrid'
 import ProductsOfferQuiz from './ProductsOfferQuiz'
+import BilonaComparisonSection from './BilonaComparisonSection'
 
 export const metadata: Metadata = {
   title: 'Products | Aavya Foods',
   description:
-    'Shop pure A2 Bilona Cow Ghee — hand-churned the traditional way, free from additives, packed with natural goodness.',
+    'Shop pure Bilona Cow Ghee — hand-churned the traditional way, free from additives, packed with natural goodness.',
 }
 
-const BADGES = ['100% A2 Milk', 'Bilona Method', 'No Additives', 'Farm Direct']
+const BADGES = ['100% Desi Milk', 'Bilona Method', 'No Additives', 'Farm Fresh']
 
 export default function ProductsPage() {
   return (
@@ -21,12 +23,6 @@ export default function ProductsPage() {
         <div className="absolute -bottom-8 -left-8 w-56 h-56 rounded-full bg-secondary/6 blur-3xl pointer-events-none" />
 
         <div className="relative max-w-5xl mx-auto px-4 md:px-8 pt-8 pb-7 text-center">
-          {/* Eyebrow */}
-          <div className="inline-flex items-center gap-1.5 text-secondary font-semibold text-[11px] uppercase tracking-[0.2em] mb-3">
-            <Leaf className="w-3.5 h-3.5 text-primary" />
-            Aavya Foods
-            <Leaf className="w-3.5 h-3.5 text-primary" />
-          </div>
 
           {/* Title */}
           <h1 className="text-3xl sm:text-4xl font-extrabold text-text-primary tracking-tight leading-tight mb-2">
@@ -35,7 +31,8 @@ export default function ProductsPage() {
 
           {/* Subtitle */}
           <p className="text-text-secondary text-sm leading-relaxed max-w-sm mx-auto mb-5">
-            Slow-churned from indigenous desi cow milk. No shortcuts, no additives.
+            Slow-churned from indigenous desi cow milk.{' '}
+            <span className="font-semibold text-secondary">No shortcuts, no additives.</span>
           </p>
 
           {/* Badges */}
@@ -55,10 +52,25 @@ export default function ProductsPage() {
 
       {/* Products */}
       <section className="max-w-5xl mx-auto px-4 md:px-8 py-10">
-        <ProductsGrid />
+        <Suspense fallback={
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-md animate-pulse">
+                <div className="aspect-square bg-surface" />
+                <div className="p-7 flex flex-col gap-4">
+                  <div className="h-6 bg-surface rounded-full w-2/3" />
+                  <div className="h-12 bg-surface rounded-full mt-4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        }>
+          <ProductsGrid />
+        </Suspense>
       </section>
 
       <ProductsOfferQuiz />
+      <BilonaComparisonSection />
     </div>
   )
 }

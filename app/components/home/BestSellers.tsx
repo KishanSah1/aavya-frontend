@@ -33,7 +33,7 @@ export default function BestSellers() {
             <div className="flex items-center justify-center gap-2 mb-3">
               <Leaf className="w-5 h-5 text-primary" />
               <span className="text-secondary font-medium text-sm tracking-[0.14em]">
-                A2 Bilona cow ghee
+                Bilona cow ghee
               </span>
               <Leaf className="w-5 h-5 text-primary" />
             </div>

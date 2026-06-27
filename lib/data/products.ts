@@ -14,7 +14,7 @@ const DETAIL_PARAGRAPHS_COMMON = [
 ] as const
 
 const HIGHLIGHTS_COMMON = [
-  'Made from 100% pure A2 desi cow milk',
+  'Made from 100% pure desi cow milk',
   'Traditional bilona (hand-churned) process',
   'No additives, preservatives or artificial flavours',
   'Rich in vitamins A, D, E & K',
@@ -24,7 +24,7 @@ const PRODUCT_DETAILS: ProductDetail[] = [
   {
     id: 'ghee-500ml',
     slug: 'a2-bilona-ghee-500ml',
-    name: 'A2 Bilona Cow Ghee',
+    name: 'Bilona Cow Ghee',
     weight: '500 ml',
     price: 599,
     mrp: 699,
@@ -43,7 +43,7 @@ const PRODUCT_DETAILS: ProductDetail[] = [
   {
     id: 'ghee-1l',
     slug: 'a2-bilona-ghee-1l',
-    name: 'A2 Bilona Cow Ghee',
+    name: 'Bilona Cow Ghee',
     weight: '1 L',
     price: 1099,
     mrp: 1299,
