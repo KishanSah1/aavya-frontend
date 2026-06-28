@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Check, CheckCircle2, Copy, Leaf, Sparkles, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -252,6 +253,12 @@ function SuccessScreen({
           <Copy className="w-4 h-4" aria-hidden />
           {copied ? 'Copied!' : `Copy — ${OFFER_PERCENT}% off at checkout`}
         </button>
+        <Link
+          href={`/checkout?coupon=${OFFER_CODE}`}
+          className="mt-3 block text-center text-sm font-semibold text-secondary underline"
+        >
+          Go to checkout with this code
+        </Link>
       </div>
 
       <button

@@ -7,6 +7,9 @@ interface User {
   phone?: string
   name?: string
   role: string
+  referralCode?: string
+  coinBalance?: number
+  successfulReferrals?: number
 }
 
 interface AuthStore {

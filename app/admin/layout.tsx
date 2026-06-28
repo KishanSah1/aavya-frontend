@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Package, Tag, Ticket } from 'lucide-react'
+import { LayoutDashboard, Package, Tag, Ticket, Gift } from 'lucide-react'
 import { useAuthStore } from '@/lib/store/authStore'
 
 const NAV = [
@@ -11,6 +11,7 @@ const NAV = [
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/categories', label: 'Categories', icon: Tag },
   { href: '/admin/coupons', label: 'Coupons', icon: Ticket },
+  { href: '/admin/referrals', label: 'Referrals', icon: Gift },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

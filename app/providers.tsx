@@ -1,9 +1,10 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AuthModal from './components/auth/AuthModal'
 import CartHydrator from './components/cart/CartHydrator'
+import ReferralSignupPrompt from './components/ReferralSignupPrompt'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(
@@ -20,6 +21,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={client}>
+      <ReferralSignupPrompt />
       <CartHydrator />
       {children}
       <AuthModal />

@@ -23,6 +23,11 @@ interface Order {
   total: number
   subtotal: number
   shippingFee: number
+  couponCode?: string | null
+  couponDiscount?: number
+  coinsUsed?: number
+  coinDiscount?: number
+  discountTotal?: number
   createdAt: string
   shipName: string
   shipCity: string
@@ -224,6 +229,18 @@ export default function OrdersPage() {
                           <span>Subtotal</span>
                           <span>{formatPrice(order.subtotal)}</span>
                         </div>
+                        {(order.couponDiscount ?? 0) > 0 && (
+                          <div className="flex justify-between text-sm text-green-700">
+                            <span>Coupon{order.couponCode ? ` (${order.couponCode})` : ''}</span>
+                            <span>−{formatPrice(order.couponDiscount!)}</span>
+                          </div>
+                        )}
+                        {(order.coinsUsed ?? 0) > 0 && (
+                          <div className="flex justify-between text-sm text-secondary">
+                            <span>Coins ({order.coinsUsed})</span>
+                            <span>−{formatPrice(order.coinDiscount ?? 0)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between text-sm text-text-secondary">
                           <span>Shipping</span>
                           <span className="text-secondary font-medium">{order.shippingFee === 0 ? 'Free' : formatPrice(order.shippingFee)}</span>

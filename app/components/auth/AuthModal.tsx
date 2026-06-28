@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { X } from 'lucide-react'
 import { useAuthStore } from '@/lib/store/authStore'
 import { useCartStore } from '@/lib/store/cartStore'
+import { getStoredReferralCode, clearStoredReferralCode } from '@/lib/referralStorage'
 import Button from '@/app/components/ui/Button'
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -15,16 +16,21 @@ const VALUE_CARDS = [
   { emoji: '✨', title: 'Trusted', sub: '5,000+ families can\'t be wrong' },
 ]
 
-type Step = 'details' | 'otp' | 'name'
+type Step = 'auth' | 'signup' | 'name'
 
 export default function AuthModal() {
   const { isModalOpen, closeModal, setAuth } = useAuthStore()
   const syncOnLogin = useCartStore((s) => s.syncOnLogin)
 
-  const [step, setStep] = useState<Step>('details')
+  const [step, setStep] = useState<Step>('auth')
   const [phone, setPhone] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
   const [otp, setOtp] = useState(['', '', '', ''])
   const [name, setName] = useState('')
+  const [referralCode, setReferralCode] = useState('')
+  const [showReferralField, setShowReferralField] = useState(false)
+  const [referralFromLink, setReferralFromLink] = useState(false)
+  const [signupToken, setSignupToken] = useState('')
   const [pendingAuth, setPendingAuth] = useState<{ user: Parameters<typeof setAuth>[0], accessToken: string, refreshToken: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -32,7 +38,6 @@ export default function AuthModal() {
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  // close on Escape
   useEffect(() => {
     if (!isModalOpen) return
     const handler = (e: KeyboardEvent) => e.key === 'Escape' && handleClose()
@@ -40,27 +45,53 @@ export default function AuthModal() {
     return () => window.removeEventListener('keydown', handler)
   }, [isModalOpen])
 
-  // countdown timer for resend
   useEffect(() => {
     if (resendTimer <= 0) return
     const t = setTimeout(() => setResendTimer((n) => n - 1), 1000)
     return () => clearTimeout(t)
   }, [resendTimer])
 
-  function handleClose() {
-    closeModal()
-    setStep('details')
+  function resetForm() {
+    setStep('auth')
     setPhone('')
+    setOtpSent(false)
     setOtp(['', '', '', ''])
     setName('')
+    setReferralCode('')
+    setShowReferralField(false)
+    setReferralFromLink(false)
+    setSignupToken('')
     setPendingAuth(null)
     setError('')
+    setResendTimer(0)
   }
 
-  async function handleDetailsSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  function handleClose() {
+    closeModal()
+    resetForm()
+  }
+
+  function prepareSignupStep() {
+    const stored = getStoredReferralCode()
+    if (stored) {
+      setReferralCode(stored)
+      setShowReferralField(true)
+      setReferralFromLink(true)
+    } else {
+      setReferralCode('')
+      setShowReferralField(false)
+      setReferralFromLink(false)
+    }
+    setStep('signup')
+  }
+
+  async function handleSendOtp(e?: React.FormEvent) {
+    e?.preventDefault()
     const cleaned = phone.replace(/\D/g, '')
-    if (cleaned.length !== 10) { setError('Enter a valid 10-digit number'); return }
+    if (cleaned.length !== 10) {
+      setError('Enter a valid 10-digit number')
+      return
+    }
     setError('')
     setLoading(true)
     try {
@@ -70,9 +101,13 @@ export default function AuthModal() {
         body: JSON.stringify({ phone: `+91${cleaned}` }),
       })
       const json = await res.json()
-      if (!res.ok) { setError(json.error?.message ?? 'Failed to send OTP'); return }
-      setStep('otp')
+      if (!res.ok) {
+        setError(json.error?.message ?? 'Failed to send OTP')
+        return
+      }
+      setOtpSent(true)
       setResendTimer(30)
+      setOtp(['', '', '', ''])
       setTimeout(() => otpRefs.current[0]?.focus(), 100)
     } catch {
       setError('Network error. Try again.')
@@ -81,27 +116,112 @@ export default function AuthModal() {
     }
   }
 
-  async function handleOtpSubmit(e: React.FormEvent) {
+  async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault()
     const code = otp.join('')
-    if (code.length !== 4) { setError('Enter the full 4-digit OTP'); return }
+    if (code.length !== 4) {
+      setError('Enter the full 4-digit OTP')
+      return
+    }
     setError('')
     setLoading(true)
     try {
       const res = await fetch(`${API}/api/v1/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: `+91${phone.replace(/\D/g, '')}`, code }),
+        body: JSON.stringify({
+          phone: `+91${phone.replace(/\D/g, '')}`,
+          code,
+        }),
       })
       const json = await res.json()
-      if (!res.ok) { setError(json.error?.message ?? 'Invalid OTP'); return }
+      if (!res.ok) {
+        setError(json.error?.message ?? 'Invalid OTP')
+        return
+      }
+
+      if (json.data.isNewUser) {
+        setSignupToken(json.data.signupToken)
+        prepareSignupStep()
+        return
+      }
+
       if (!json.data.user.name) {
-        setPendingAuth({ user: json.data.user, accessToken: json.data.accessToken, refreshToken: json.data.refreshToken })
+        setPendingAuth({
+          user: json.data.user,
+          accessToken: json.data.accessToken,
+          refreshToken: json.data.refreshToken,
+        })
         setStep('name')
       } else {
         setAuth(json.data.user, json.data.accessToken, json.data.refreshToken)
         await syncOnLogin()
       }
+    } catch {
+      setError('Network error. Try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleSignupSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!name.trim() || !signupToken) return
+    setError('')
+    setLoading(true)
+    try {
+      const body: Record<string, string> = {
+        signupToken,
+        name: name.trim(),
+      }
+      if (referralCode.trim()) body.referralCode = referralCode.trim().toUpperCase()
+
+      const res = await fetch(`${API}/api/v1/auth/complete-signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setError(json.error?.message ?? 'Signup failed')
+        return
+      }
+
+      if (referralCode.trim()) clearStoredReferralCode()
+      setAuth(json.data.user, json.data.accessToken, json.data.refreshToken)
+      await syncOnLogin()
+    } catch {
+      setError('Network error. Try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleNameSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!name.trim() || !pendingAuth) return
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch(`${API}/api/v1/auth/me`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${pendingAuth.accessToken}`,
+        },
+        body: JSON.stringify({ name: name.trim() }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setError(json.error?.message ?? 'Failed to save name')
+        return
+      }
+      setAuth(
+        { ...pendingAuth.user, name: name.trim() },
+        pendingAuth.accessToken,
+        pendingAuth.refreshToken
+      )
+      await syncOnLogin()
     } catch {
       setError('Network error. Try again.')
     } finally {
@@ -123,38 +243,9 @@ export default function AuthModal() {
     if (digit && i < 3) otpRefs.current[i + 1]?.focus()
   }
 
-  async function handleNameSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!name.trim() || !pendingAuth) return
-    setError('')
-    setLoading(true)
-    try {
-      const res = await fetch(`${API}/api/v1/auth/me`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${pendingAuth.accessToken}` },
-        body: JSON.stringify({ name: name.trim(), phone: `+91${phone.replace(/\D/g, '')}` }),
-      })
-      const json = await res.json()
-      if (!res.ok) { setError(json.error?.message ?? 'Failed to save name'); return }
-      setAuth({ ...pendingAuth.user, name: name.trim() }, pendingAuth.accessToken, pendingAuth.refreshToken)
-      await syncOnLogin()
-    } catch {
-      setError('Network error. Try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   async function handleResend() {
     if (resendTimer > 0) return
-    await fetch(`${API}/api/v1/auth/request-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: `+91${phone.replace(/\D/g, '')}` }),
-    })
-    setResendTimer(30)
-    setOtp(['', '', '', ''])
-    setTimeout(() => otpRefs.current[0]?.focus(), 50)
+    await handleSendOtp()
   }
 
   if (!isModalOpen) return null
@@ -165,18 +256,13 @@ export default function AuthModal() {
       role="dialog"
       aria-modal="true"
     >
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={handleClose}
       />
 
-      {/* Modal */}
       <div className="relative z-10 w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[420px]">
-
-        {/* ── Left panel ── */}
         <div className="relative flex flex-col justify-between bg-[#F5E9C8] px-8 py-10 md:w-[52%]">
-          {/* Logo */}
           <div>
             <Image
               src="/aavya/logo.jpeg"
@@ -190,7 +276,6 @@ export default function AuthModal() {
             </h2>
           </div>
 
-          {/* Value cards */}
           <div className="grid grid-cols-3 gap-3">
             {VALUE_CARDS.map((c) => (
               <div
@@ -205,9 +290,7 @@ export default function AuthModal() {
           </div>
         </div>
 
-        {/* ── Right panel ── */}
         <div className="relative flex flex-col justify-center bg-white px-8 py-10 md:w-[48%]">
-          {/* Close */}
           <button
             onClick={handleClose}
             className="absolute top-4 right-4 p-1.5 rounded-full text-text-secondary hover:bg-surface transition-colors"
@@ -216,10 +299,60 @@ export default function AuthModal() {
             <X className="w-5 h-5" />
           </button>
 
-          {step === 'name' ? (
+          {step === 'signup' ? (
+            <form onSubmit={handleSignupSubmit} className="flex flex-col gap-5">
+              <div>
+                <h3 className="text-xl font-bold text-text-primary mb-1">Create your account</h3>
+                <p className="text-sm text-text-secondary">Almost done — tell us your name</p>
+              </div>
+
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your full name"
+                maxLength={100}
+                autoFocus
+                className="border border-surface rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
+              />
+
+              {referralFromLink && showReferralField && (
+                <p className="text-xs text-secondary bg-secondary/10 rounded-lg px-3 py-2">
+                  Referral code applied — you can edit or remove it below.
+                </p>
+              )}
+
+              {showReferralField ? (
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-text-secondary">Referral code (optional)</label>
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                    placeholder="AAVYA-XXXXXX"
+                    className="border border-surface rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none focus:ring-2 focus:ring-secondary/30 transition-all uppercase"
+                  />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowReferralField(true)}
+                  className="text-sm text-secondary font-medium text-left hover:underline"
+                >
+                  Have a friend&apos;s referral code?
+                </button>
+              )}
+
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+
+              <Button type="submit" disabled={loading || !name.trim()} fullWidth size="lg" variant="outline">
+                {loading ? 'Creating account…' : 'Create account'}
+              </Button>
+            </form>
+          ) : step === 'name' ? (
             <form onSubmit={handleNameSubmit} className="flex flex-col gap-5">
               <div>
-                <h3 className="text-xl font-bold text-text-primary mb-1">What's your name?</h3>
+                <h3 className="text-xl font-bold text-text-primary mb-1">What&apos;s your name?</h3>
                 <p className="text-sm text-text-secondary">Help us personalise your experience</p>
               </div>
 
@@ -239,14 +372,17 @@ export default function AuthModal() {
                 {loading ? 'Saving…' : 'Continue'}
               </Button>
             </form>
-          ) : step === 'details' ? (
-            <form onSubmit={handleDetailsSubmit} className="flex flex-col gap-5">
+          ) : (
+            <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="flex flex-col gap-5">
               <div>
                 <h3 className="text-xl font-bold text-text-primary mb-1">Login or Register</h3>
-                <p className="text-sm text-text-secondary">We'll send a one-time OTP to your mobile</p>
+                <p className="text-sm text-text-secondary">
+                  {otpSent
+                    ? `Enter the OTP sent to +91 ${phone.replace(/\D/g, '')}`
+                    : "We'll send a one-time OTP to your mobile"}
+                </p>
               </div>
 
-              {/* Phone input */}
               <div className="flex items-center border border-surface rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-secondary/30 transition-all bg-white">
                 <div className="flex items-center gap-2 px-4 py-3 border-r border-surface text-sm font-medium text-text-primary shrink-0 bg-[#FAFAF8]">
                   <span>🇮🇳</span>
@@ -259,74 +395,77 @@ export default function AuthModal() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   placeholder="Mobile Number"
-                  className="flex-1 px-4 py-3 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none bg-transparent"
+                  disabled={otpSent}
+                  className="flex-1 px-4 py-3 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none bg-transparent disabled:opacity-60"
                   autoFocus
                 />
-              </div>
-
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-
-              <Button type="submit" disabled={loading} fullWidth size="lg" variant="outline">
-                {loading ? 'Sending OTP…' : 'Send OTP'}
-              </Button>
-
-              <p className="text-center text-xs text-text-secondary leading-relaxed">
-                I accept that I have read & understood your{' '}
-                <span className="underline cursor-pointer">Privacy Policy</span>{' '}
-                and{' '}
-                <span className="underline cursor-pointer">T&Cs.</span>
-              </p>
-            </form>
-          ) : (
-            <form onSubmit={handleOtpSubmit} className="flex flex-col gap-5">
-              <div>
-                <h3 className="text-xl font-bold text-text-primary mb-1">Verify OTP</h3>
-                <p className="text-sm text-text-secondary">
-                  Sent to +91 {phone.replace(/\D/g, '')}
+                {otpSent && (
                   <button
                     type="button"
-                    onClick={() => { setStep('details'); setError('') }}
-                    className="ml-2 text-secondary underline text-xs"
+                    onClick={() => {
+                      setOtpSent(false)
+                      setOtp(['', '', '', ''])
+                      setError('')
+                    }}
+                    className="px-3 text-xs text-secondary underline shrink-0"
                   >
                     Change
                   </button>
-                </p>
+                )}
               </div>
 
-              {/* OTP boxes */}
-              <div className="flex gap-2.5 justify-between">
-                {otp.map((digit, i) => (
-                  <input
-                    key={i}
-                    ref={(el) => { otpRefs.current[i] = el }}
-                    type="tel"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(i, e.target.value)}
-                    onKeyDown={(e) => handleOtpKey(i, e)}
-                    className="w-11 h-12 text-center text-lg font-bold border-2 rounded-xl outline-none transition-all focus:border-secondary focus:ring-2 focus:ring-secondary/20 border-surface text-text-primary"
-                  />
-                ))}
-              </div>
+              {otpSent && (
+                <>
+                  <div className="flex gap-2.5 justify-between">
+                    {otp.map((digit, i) => (
+                      <input
+                        key={i}
+                        ref={(el) => { otpRefs.current[i] = el }}
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpChange(i, e.target.value)}
+                        onKeyDown={(e) => handleOtpKey(i, e)}
+                        className="w-11 h-12 text-center text-lg font-bold border-2 rounded-xl outline-none transition-all focus:border-secondary focus:ring-2 focus:ring-secondary/20 border-surface text-text-primary"
+                      />
+                    ))}
+                  </div>
+
+                  <p className="text-center text-sm text-text-secondary -mt-2">
+                    Didn&apos;t receive it?{' '}
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resendTimer > 0}
+                      className="text-secondary font-medium disabled:text-text-secondary/50"
+                    >
+                      {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+                    </button>
+                  </p>
+                </>
+              )}
 
               {error && <p className="text-red-500 text-sm">{error}</p>}
 
               <Button type="submit" disabled={loading} fullWidth size="lg" variant="outline">
-                {loading ? 'Verifying…' : 'Verify & Login'}
+                {loading
+                  ? otpSent
+                    ? 'Verifying…'
+                    : 'Sending OTP…'
+                  : otpSent
+                    ? 'Verify & Continue'
+                    : 'Send OTP'}
               </Button>
 
-              <p className="text-center text-sm text-text-secondary">
-                Didn't receive it?{' '}
-                <button
-                  type="button"
-                  onClick={handleResend}
-                  disabled={resendTimer > 0}
-                  className="text-secondary font-medium disabled:text-text-secondary/50"
-                >
-                  {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
-                </button>
-              </p>
+              {!otpSent && (
+                <p className="text-center text-xs text-text-secondary leading-relaxed">
+                  I accept that I have read & understood your{' '}
+                  <span className="underline cursor-pointer">Privacy Policy</span>{' '}
+                  and{' '}
+                  <span className="underline cursor-pointer">T&Cs.</span>
+                </p>
+              )}
             </form>
           )}
         </div>

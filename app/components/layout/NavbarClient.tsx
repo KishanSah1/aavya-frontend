@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, type FormEvent } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { Menu, X, ShoppingCart, Search, User, LogOut, LayoutDashboard, Package } from 'lucide-react'
+import { Menu, X, ShoppingCart, Search, User, LogOut, LayoutDashboard, Package, Coins } from 'lucide-react'
 import { useCartStore } from '@/lib/store/cartStore'
 import { useAuthStore } from '@/lib/store/authStore'
 import type { NavLink } from '@/lib/types'
@@ -211,6 +211,12 @@ export default function NavbarClient({ links }: NavbarClientProps) {
                     className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-surface transition-colors"
                   >
                     <Package className="w-4 h-4" /> My Orders
+                  </Link>
+                  <Link
+                    href="/account/wallet"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-surface transition-colors"
+                  >
+                    <Coins className="w-4 h-4" /> Wallet & Referrals
                   </Link>
                   <hr className="border-surface mx-2 my-1" />
                   <button
